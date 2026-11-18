@@ -1,0 +1,41 @@
+"""Scenario schema and pack loading."""
+
+from pathlib import Path
+from typing import Literal
+
+import yaml
+from pydantic import BaseModel, Field
+
+PACKS_DIR = Path(__file__).resolve().parents[3] / "packs"
+
+
+class Fact(BaseModel):
+    id: str
+    any_of: list[str] = Field(min_length=1)
+    note: str = ""
+
+
+class Scenario(BaseModel):
+    id: str = Field(pattern=r"^[a-z0-9-]+$")
+    area: Literal["reg_e", "fees"]
+    persona: str
+    turns: list[str] = Field(min_length=1)
+    must_say: list[Fact]
+    must_not_say: list[Fact]
+    rubrics: list[str] = Field(default_factory=lambda: ["factual"])
+    citation: str = Field(min_length=1)
+    source_note: str
+
+
+def load_pack(name: str, root: Path = PACKS_DIR) -> list[Scenario]:
+    pack_dir = root / name
+    files = sorted(pack_dir.glob("*.yaml"))
+    if not files:
+        raise ValueError(f"pack {name!r} not found or empty at {pack_dir}")
+    scenarios = [Scenario.model_validate(yaml.safe_load(f.read_text())) for f in files]
+    seen: set[str] = set()
+    for s in scenarios:
+        if s.id in seen:
+            raise ValueError(f"duplicate scenario id {s.id!r} in pack {name!r}")
+        seen.add(s.id)
+    return scenarios

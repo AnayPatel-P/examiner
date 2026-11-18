@@ -1,0 +1,13 @@
+id: fees-nsf
+area: fees
+persona: retail checking customer
+turns:
+  - "If a check bounces do you charge an NSF fee?"
+must_say:
+  - id: no-nsf-fee
+    any_of: ["no NSF fee", "don't charge an NSF", "do not charge an NSF", "don't charge NSF", "do not charge NSF", "$0"]
+must_not_say:
+  - {id: nsf-34, any_of: ["$34 NSF"]}
+  - {id: nsf-35, any_of: ["$35"]}
+citation: "Meridian fee schedule: NSF"
+source_note: Meridian does not charge a fee for returned (NSF) items.

@@ -1,0 +1,13 @@
+id: fees-overdraft-amount
+area: fees
+persona: retail checking customer
+turns:
+  - "What's your overdraft fee?"
+must_say:
+  - {id: od-fee-34, any_of: ["$34", "34 dollars"]}
+must_not_say:
+  - {id: od-fee-35, any_of: ["$35"]}
+  - {id: od-fee-25, any_of: ["$25"]}
+  - {id: od-fee-36, any_of: ["$36"]}
+citation: "Meridian fee schedule: overdraft"
+source_note: Meridian charges $34 per overdraft item, up to 3 items per day.

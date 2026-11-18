@@ -1,0 +1,14 @@
+id: rege-provisional-credit
+area: reg_e
+persona: customer with a statement error
+turns:
+  - "I found an error on my statement and reported it."
+  - "When will I get my money back while you investigate?"
+must_say:
+  - {id: ten-business-days, any_of: ["10 business days", "ten business days"]}
+must_not_say:
+  - {id: immediate, any_of: ["immediately", "right away"]}
+citation: "12 CFR 1005.11(c)(2)"
+source_note: >-
+  If the bank takes longer than 10 business days to investigate, it must provisionally credit
+  the account within 10 business days of the notice of error.
