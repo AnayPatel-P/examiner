@@ -4,6 +4,7 @@ from inspect_ai import Task, task
 from inspect_ai.dataset import MemoryDataset, Sample
 from inspect_ai.scorer import Scorer
 
+from examiner.runner.judge import judge
 from examiner.runner.scorers import fact_check
 from examiner.runner.solver import http_target
 from examiner.scenarios.schema import Scenario, load_pack
@@ -21,6 +22,8 @@ def examiner_task(
     use_judge: bool = True,
 ) -> Task:
     scorers: list[Scorer] = [fact_check()]
+    if use_judge:
+        scorers.append(judge())
     return Task(
         dataset=MemoryDataset([scenario_to_sample(s) for s in load_pack(pack)], name=pack),
         solver=http_target(target, variant),
