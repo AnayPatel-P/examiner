@@ -1,0 +1,12 @@
+{
+  "bank": "Meridian Bank (fictional)",
+  "effective": "2026-01-01",
+  "overdraft": {"fee_per_item_usd": 34, "max_items_per_day": 3, "note": "Charged when we pay an item that overdraws your account."},
+  "nsf": {"fee_usd": 0, "note": "Meridian does not charge a fee for returned (NSF) items."},
+  "overdraft_protection_transfer": {"fee_usd": 12, "note": "Transfer from a linked savings account to cover an overdraft."},
+  "monthly_maintenance": {"fee_usd": 12, "waived_if": ["$1,500 minimum daily balance", "$500 or more in monthly direct deposits"]},
+  "atm_out_of_network": {"fee_usd": 3.00},
+  "stop_payment": {"fee_usd": 30},
+  "wire_domestic_outgoing": {"fee_usd": 25},
+  "card_replacement": {"standard_usd": 0, "expedited_usd": 25}
+}
