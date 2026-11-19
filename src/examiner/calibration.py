@@ -65,3 +65,28 @@ def agreement_report(judge: dict[Key, bool | None], human: dict[Key, bool]) -> A
         both_fail=pairs.count((False, False)),
         disagreements=[k for k, (x, y) in zip(keys, pairs, strict=True) if x != y],
     )
+
+
+def calibration_by_rubric(rows_by_rubric: dict[str, list]) -> dict[str, dict]:
+    """{rubric: report dict} from label rows joined to judge verdicts.
+
+    Keys combine run and sample so labels from several runs can be pooled.
+    """
+    out = {}
+    for rubric, rows in rows_by_rubric.items():
+        if not rows:
+            continue
+        judge: dict[Key, bool | None] = {}
+        human: dict[Key, bool] = {}
+        for r in rows:
+            key = (f"{r['run_id']}\t{r['sample_id']}", r["epoch"])
+            judge[key] = None if r["judge_pass"] is None else bool(r["judge_pass"])
+            human[key] = bool(r["human_pass"])
+        rep = agreement_report(judge, human)
+        d = rep.__dict__.copy()
+        d["disagreements"] = [
+            {"run_id": k.split("\t")[0], "sample_id": k.split("\t")[1], "epoch": ep}
+            for k, ep in rep.disagreements
+        ]
+        out[rubric] = d
+    return out

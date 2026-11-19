@@ -155,8 +155,8 @@ def label_export(
 
 @app.command()
 def kappa(
-    run: str = typer.Option(..., "--run"),
-    labels: Path = typer.Option(Path("spike/labels.csv")),
+    run: str | None = typer.Option(None, "--run", help="Limit to one run's labels."),
+    labels: Path | None = typer.Option(None, help="CSV sheet; omit to use labels in the DB."),
     db: Path = typer.Option(Path("examiner.db")),
     rubric: str = typer.Option("factual", help="Rubric the labels were made against."),
 ) -> None:
@@ -164,9 +164,19 @@ def kappa(
     from examiner.calibration import agreement_report, read_labels
 
     store = Store(db)
-    judge = {(r["sample_id"], r["epoch"]): r["passed"] for r in store.scores(run, rubric)}
-    judge = {k: (None if v is None else bool(v)) for k, v in judge.items()}
-    rep = agreement_report(judge, read_labels(labels))
+    if labels is not None:
+        if run is None:
+            raise typer.BadParameter("--run is required with --labels")
+        judge = {(r["sample_id"], r["epoch"]): r["passed"] for r in store.scores(run, rubric)}
+        human = read_labels(labels)
+    else:
+        rows = [r for r in store.judged_with_labels(rubric) if run is None or r["run_id"] == run]
+        judge = {(f"{r['run_id']}/{r['sample_id']}", r["epoch"]): r["judge_pass"] for r in rows}
+        human = {
+            (f"{r['run_id']}/{r['sample_id']}", r["epoch"]): bool(r["human_pass"]) for r in rows
+        }
+    verdicts = {k: (None if v is None else bool(v)) for k, v in judge.items()}
+    rep = agreement_report(verdicts, human)
     typer.echo(
         f"n={rep.n}  raw agreement={rep.raw_agreement:.2f}  kappa={rep.kappa:.2f}\n"
         f"                 human pass  human fail\n"
@@ -175,6 +185,33 @@ def kappa(
     )
     for sid, ep in rep.disagreements:
         typer.echo(f"disagree: {sid} (epoch {ep})")
+
+
+@app.command("labels-import")
+def labels_import(
+    csv_path: Path = typer.Option(..., "--csv"),
+    run: str = typer.Option(..., "--run"),
+    rubric: str = typer.Option("factual"),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Load a filled CSV labeling sheet into the labels table."""
+    from examiner.calibration import read_labels
+    from examiner.scenarios.schema import RUBRIC_NAMES
+
+    if rubric not in RUBRIC_NAMES:
+        raise typer.BadParameter(f"rubric must be one of {', '.join(RUBRIC_NAMES)}")
+    store = Store(db)
+    if store.run(run) is None:
+        typer.echo(f"error: no run {run}", err=True)
+        raise typer.Exit(2)
+    n = 0
+    for (sid, ep), passed in read_labels(csv_path).items():
+        if store.result(run, sid, ep) is None:
+            typer.echo(f"skip: {sid} (epoch {ep}) not in run {run}", err=True)
+            continue
+        store.save_label(run, sid, ep, rubric, passed)
+        n += 1
+    typer.echo(f"imported {n} {rubric} labels for run {run}")
 
 
 def _save_sheet(path: Path, rows: list[dict]) -> None:

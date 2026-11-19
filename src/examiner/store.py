@@ -36,6 +36,15 @@ CREATE TABLE IF NOT EXISTS score (
     judge_version TEXT,
     PRIMARY KEY (run_id, sample_id, epoch, rubric)
 );
+CREATE TABLE IF NOT EXISTS label (
+    run_id TEXT NOT NULL,
+    sample_id TEXT NOT NULL,
+    epoch INTEGER NOT NULL,
+    rubric TEXT NOT NULL,
+    human_pass INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (run_id, sample_id, epoch, rubric)
+);
 """
 
 TARGET_MODEL = "anthropic/claude-haiku-5-5"
@@ -187,4 +196,42 @@ class Store:
     def results(self, run_id: str) -> list[sqlite3.Row]:
         return self.db.execute(
             "SELECT * FROM result WHERE run_id = ? ORDER BY sample_id, epoch", (run_id,)
+        ).fetchall()
+
+    def save_label(
+        self, run_id: str, sample_id: str, epoch: int, rubric: str, human_pass: bool
+    ) -> None:
+        from datetime import UTC, datetime
+
+        with self.db:
+            self.db.execute(
+                "INSERT OR REPLACE INTO label VALUES (?,?,?,?,?,?)",
+                (
+                    run_id,
+                    sample_id,
+                    epoch,
+                    rubric,
+                    int(human_pass),
+                    datetime.now(UTC).isoformat(timespec="seconds"),
+                ),
+            )
+
+    def labels(self, rubric: str | None = None, run_id: str | None = None) -> list[sqlite3.Row]:
+        sql, args = "SELECT * FROM label WHERE 1=1", []
+        if rubric:
+            sql += " AND rubric = ?"
+            args.append(rubric)
+        if run_id:
+            sql += " AND run_id = ?"
+            args.append(run_id)
+        return self.db.execute(sql + " ORDER BY created_at, run_id, sample_id", args).fetchall()
+
+    def judged_with_labels(self, rubric: str) -> list[sqlite3.Row]:
+        """Every label for a rubric, joined to the judge's verdict (NULL if none)."""
+        return self.db.execute(
+            "SELECT l.run_id, l.sample_id, l.epoch, l.human_pass, s.passed AS judge_pass "
+            "FROM label l LEFT JOIN score s ON s.run_id = l.run_id AND s.sample_id = l.sample_id "
+            "AND s.epoch = l.epoch AND s.rubric = l.rubric WHERE l.rubric = ? "
+            "ORDER BY l.run_id, l.sample_id, l.epoch",
+            (rubric,),
         ).fetchall()

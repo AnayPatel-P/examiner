@@ -49,6 +49,14 @@ RUBRICS = {
 JUDGE_VERSION = RUBRICS["factual"].version
 
 
+def rubric_guide(name: str) -> str:
+    """The rubric section the judge sees, verbatim, for human labelers."""
+    rubric = RUBRICS[name]
+    system = rubric.path.read_text().split(SPLIT)[0]
+    start = system.index("## Rubric")
+    return system[start:].replace("{version}", rubric.version).strip()
+
+
 def rules_block(citations: list[str]) -> str:
     from examiner.scenarios.lint import cited_text
 

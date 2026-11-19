@@ -1,16 +1,33 @@
 """Read API over the Examiner SQLite store, for the dashboard."""
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
+from examiner.calibration import calibration_by_rubric
 from examiner.reports import areas_for, overall_pass, rubric_map, run_summary, scorecard
+from examiner.runner.judge import rubric_guide
 from examiner.scenarios.lint import cited_text
-from examiner.scenarios.schema import display_citation, load_pack
+from examiner.scenarios.schema import RUBRIC_NAMES, Rubric, display_citation, load_pack
 from examiner.store import Store
+
+
+class LabelIn(BaseModel):
+    run_id: str
+    sample_id: str
+    epoch: int = 1
+    rubric: Rubric
+    human_pass: bool
+
+
+def _shuffle_key(run_id: str, sample_id: str, epoch: int) -> str:
+    return hashlib.sha256(f"{run_id}/{sample_id}/{epoch}".encode()).hexdigest()
+
 
 DEV_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
@@ -118,5 +135,70 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
                 for c in cites
             ],
         }
+
+    @api.get("/api/label-queue")
+    def label_queue(
+        rubric: Rubric = "factual", run: str | None = None, limit: int = Query(20, ge=1, le=500)
+    ) -> list[dict]:
+        """Unlabeled, judged results for one rubric. Blind: no judge verdict or rationale."""
+        s = store()
+        run_rows = [get_run(s, run)] if run else s.runs()
+        done = {(x["run_id"], x["sample_id"], x["epoch"]) for x in s.labels(rubric=rubric)}
+        guide = rubric_guide(rubric)
+        todo = []
+        for run_row in run_rows:
+            rid = run_row["id"]
+            pack = {x.id: x for x in load_pack(run_row["pack"])}
+            judged = {
+                (x["sample_id"], x["epoch"])
+                for x in s.scores(rid, rubric)
+                if x["passed"] is not None
+            }
+            for r in s.results(rid):
+                key = (r["sample_id"], r["epoch"])
+                if r["error"] or key not in judged or (rid, *key) in done:
+                    continue
+                sc = pack.get(r["sample_id"])
+                todo.append(
+                    {
+                        "run_id": rid,
+                        "sample_id": r["sample_id"],
+                        "epoch": r["epoch"],
+                        "rubric": rubric,
+                        "transcript": r["transcript"],
+                        "citations": [
+                            {
+                                "cite": c,
+                                "display": display_citation(c),
+                                "text": cited_text(c, children=True),
+                            }
+                            for c in (sc.citations if sc else [])
+                        ],
+                        "source_note": sc.source_note if sc else "",
+                        "key_facts": [f.any_of for f in sc.must_say] if sc else [],
+                        "rubric_text": guide,
+                    }
+                )
+        todo.sort(key=lambda i: _shuffle_key(i["run_id"], i["sample_id"], i["epoch"]))
+        return todo[:limit]
+
+    @api.post("/api/labels", status_code=201)
+    def post_label(body: LabelIn) -> dict:
+        s = store()
+        get_run(s, body.run_id)
+        if s.result(body.run_id, body.sample_id, body.epoch) is None:
+            raise HTTPException(404, f"no result {body.sample_id} in run {body.run_id}")
+        s.save_label(body.run_id, body.sample_id, body.epoch, body.rubric, body.human_pass)
+        return body.model_dump()
+
+    @api.get("/api/labels")
+    def labels(rubric: Rubric | None = None, run: str | None = None) -> list[dict]:
+        rows = store().labels(rubric=rubric, run_id=run)
+        return [dict(r) | {"human_pass": bool(r["human_pass"])} for r in rows]
+
+    @api.get("/api/calibration")
+    def calibration() -> dict:
+        s = store()
+        return calibration_by_rubric({r: s.judged_with_labels(r) for r in RUBRIC_NAMES})
 
     return api
