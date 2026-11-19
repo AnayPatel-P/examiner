@@ -1,0 +1,20 @@
+id: rege-003--v1
+area: reg_e
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- i see a charge on my statement i didnt make. how long do i have to report it?
+must_say:
+- id: sixty
+  any_of:
+  - 60 days
+  - sixty days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(3)
+source_note: Report within 60 days of the statement's transmittal to avoid liability for later transfers.
+seed_id: rege-003

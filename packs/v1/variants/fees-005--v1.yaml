@@ -1,0 +1,42 @@
+id: fees-005--v1
+area: fees
+persona: a college student writing casually
+turns:
+- yo quick q, do you guys charge an NSF fee if a payment gets returned?
+must_say:
+- id: no-nsf
+  any_of:
+  - no NSF fee
+  - don't charge NSF
+  - don't charge an NSF
+  - doesn't charge NSF
+  - doesn't charge an NSF
+  - do not charge NSF
+  - do not charge an NSF
+  - does not charge NSF
+  - does not charge an NSF
+  - no fee for returned
+  - don't charge a fee for returned
+  - do not charge a fee for returned
+  - doesn't charge a fee for returned
+  - does not charge a fee for returned
+  - NSF fee is $0
+  - $0 NSF
+  note: ''
+must_not_say:
+- id: nsf-35
+  any_of:
+  - $35
+  note: ''
+- id: nsf-34
+  any_of:
+  - $34
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:nsf
+source_note: Meridian does not charge a fee for returned (NSF) items.
+seed_id: fees-005

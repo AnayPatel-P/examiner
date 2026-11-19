@@ -1,0 +1,31 @@
+id: rege-028--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful if you could kindly let me know how often you are required to send
+  me my account statements. Thank you very much for your assistance.
+must_say:
+- id: monthly
+  any_of:
+  - monthly
+  - each month
+  - every month
+  - each monthly
+  note: ''
+- id: quarterly
+  any_of:
+  - quarterly
+  - every three months
+  - every 3 months
+  - once a quarter
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.9(b)
+source_note: Monthly for each cycle with an electronic transfer, and at least quarterly if there were
+  none.
+seed_id: rege-028

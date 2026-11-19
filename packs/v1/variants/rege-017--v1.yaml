@@ -1,0 +1,21 @@
+id: rege-017--v1
+area: reg_e
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- ok so i need to dispute a debit card charge i didnt recognize at a store. how long can the investigation
+  take??
+must_say:
+- id: ninety
+  any_of:
+  - 90 days
+  - ninety days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(3)(ii)(B)
+source_note: Point-of-sale debit card transactions get up to 90 days (instead of 45) to complete the investigation.
+seed_id: rege-017

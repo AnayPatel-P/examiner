@@ -1,0 +1,22 @@
+id: fees-015--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, this is ridiculous. I need to stop a check I wrote yesterday.
+- Seriously, how much is that going to cost me?
+must_say:
+- id: stop-30
+  any_of:
+  - $30
+  - 30 dollars
+  - thirty dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:stop_payment
+source_note: A stop payment costs $30.
+seed_id: fees-015

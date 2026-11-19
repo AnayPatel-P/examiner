@@ -1,0 +1,21 @@
+id: fees-023--v1
+area: fees
+persona: a college student writing casually
+turns:
+- ok so quick question, is there gonna be a fee if I use my debit card overseas?
+must_say:
+- id: ftf-3
+  any_of:
+  - 3%
+  - 3 percent
+  - three percent
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:foreign_transaction
+source_note: 'Foreign transaction fee: 3% of each foreign-currency purchase or ATM withdrawal.'
+seed_id: fees-023

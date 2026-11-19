@@ -1,0 +1,20 @@
+id: rege-022--v1
+area: reg_e
+persona: a small-business owner in a hurry who gets straight to the point
+turns:
+- Need to stop an automatic monthly payment coming out of my account. How do I do that, and by when?
+must_say:
+- id: three-bd
+  any_of:
+  - 3 business days
+  - three business days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(c)(1)
+source_note: Notify the bank orally or in writing at least three business days before the scheduled transfer.
+seed_id: rege-022

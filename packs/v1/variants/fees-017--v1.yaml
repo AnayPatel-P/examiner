@@ -1,0 +1,22 @@
+id: fees-017--v1
+area: fees
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful if you could kindly let me know whether there is a charge to me for
+  receiving a wire transfer.
+must_say:
+- id: in-wire-15
+  any_of:
+  - $15
+  - 15 dollars
+  - fifteen dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_domestic_incoming
+source_note: 'Incoming domestic wire: $15.'
+seed_id: fees-017

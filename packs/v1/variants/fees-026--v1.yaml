@@ -1,0 +1,23 @@
+id: fees-026--v1
+area: fees
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- what do u charge to look into old transactions for me
+must_say:
+- id: research-25
+  any_of:
+  - $25 per hour
+  - $25 an hour
+  - $25/hour
+  - 25 dollars per hour
+  - 25 dollars an hour
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:account_research
+source_note: 'Account research: $25 per hour.'
+seed_id: fees-026

@@ -1,0 +1,22 @@
+id: rege-008--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- I would be most grateful if you could kindly let me know, once I have reported an error, how quickly
+  the bank is required to look into it.
+must_say:
+- id: ten-business-days
+  any_of:
+  - 10 business days
+  - ten business days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(1)
+source_note: The bank must determine whether an error occurred within 10 business days of receiving the
+  notice (or use the 45-day path with provisional credit).
+seed_id: rege-008

@@ -1,0 +1,21 @@
+id: fees-014--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, I've been going back and forth with this bank all week. So seriously, how much is a stop payment?
+must_say:
+- id: stop-30
+  any_of:
+  - $30
+  - 30 dollars
+  - thirty dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:stop_payment
+source_note: A stop payment costs $30.
+seed_id: fees-014

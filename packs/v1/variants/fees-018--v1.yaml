@@ -1,0 +1,22 @@
+id: fees-018--v1
+area: fees
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good afternoon. I would be most grateful if you could kindly tell me what the fee is for sending a wire
+  transfer of money to Mexico.
+must_say:
+- id: intl-45
+  any_of:
+  - $45
+  - 45 dollars
+  - forty-five dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_international_outgoing
+source_note: 'Outgoing international wire: $45.'
+seed_id: fees-018

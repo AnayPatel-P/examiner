@@ -1,0 +1,32 @@
+id: fees-011--v1
+area: fees
+persona: a college student writing casually
+turns:
+- ok so I usually keep like $1,000 in checking.
+- Is my monthly fee gonna get waived?
+must_say:
+- id: bal-1500
+  any_of:
+  - $1,500
+  - $1500
+  note: ''
+- id: dd-500
+  any_of:
+  - $500
+  note: ''
+must_not_say:
+- id: wrongly-waived
+  any_of:
+  - yes, it will be waived
+  - yes, your fee will be waived
+  - yes, it's waived
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: $1,000 is below the $1,500 minimum daily balance; the fee is waived only via that balance
+  or $500+ direct deposits.
+seed_id: fees-011

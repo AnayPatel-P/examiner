@@ -1,0 +1,23 @@
+id: fees-027--v1
+area: fees
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful if you could kindly tell me what the maximum amount is that I could
+  be charged in overdraft fees within a single day.
+must_say:
+- id: max-102
+  any_of:
+  - $102
+  - 102 dollars
+  - one hundred two dollars
+  - one hundred and two dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: 3 items × $34 = $102 maximum per day.
+seed_id: fees-027

@@ -1,0 +1,25 @@
+id: fees-010--v1
+area: fees
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- how do i avoid the monthly maintenence fee
+must_say:
+- id: bal-1500
+  any_of:
+  - $1,500
+  - $1500
+  - 1,500 dollars
+  note: ''
+- id: dd-500
+  any_of:
+  - $500
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: Waived with a $1,500 minimum daily balance or $500+ in monthly direct deposits.
+seed_id: fees-010

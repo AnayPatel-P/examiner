@@ -1,0 +1,27 @@
+id: rege-014--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful to know whether I am able to make use of the provisional credit while
+  your investigation is still underway.
+must_say:
+- id: full-use
+  any_of:
+  - full use
+  - use of the funds
+  - use the funds
+  - use the money
+  - can spend
+  - you can use
+  - able to use
+  - free to use
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)(ii)
+source_note: 'Yes: the bank must give the consumer full use of the funds during the investigation.'
+seed_id: rege-014

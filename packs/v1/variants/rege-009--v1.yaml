@@ -1,0 +1,21 @@
+id: rege-009--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- After you finish checking my dispute, how soon will you tell me the result?
+must_say:
+- id: three-bd
+  any_of:
+  - 3 business days
+  - three business days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(1)
+- 12 CFR 1005.11(c)(2)(iv)
+source_note: Results must be reported within three business days after completing the investigation.
+seed_id: rege-009

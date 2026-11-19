@@ -1,0 +1,21 @@
+id: rege-023--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- I am calling for to stop one automatic payment. Is phone call enough for this?
+must_say:
+- id: fourteen
+  any_of:
+  - 14 days
+  - fourteen days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(c)(2)
+source_note: The bank may require written confirmation within 14 days; if required and not received, the
+  oral order stops being binding after 14 days.
+seed_id: rege-023

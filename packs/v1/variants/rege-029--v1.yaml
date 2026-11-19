@@ -1,0 +1,21 @@
+id: rege-029--v1
+area: reg_e
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- can the bank raise my acount fees without tellng me first?
+must_say:
+- id: twenty-one
+  any_of:
+  - 21 days
+  - twenty-one days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.8(a)(1)
+source_note: For changes that increase fees or liability, written notice must be sent at least 21 days
+  before the effective date.
+seed_id: rege-029

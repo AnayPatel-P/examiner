@@ -1,0 +1,34 @@
+id: rege-012--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- If your investigation extends beyond 10 business days, may I please receive my money back in the meantime?
+must_say:
+- id: ten-business-days
+  any_of:
+  - 10 business days
+  - ten business days
+  note: ''
+- id: provisional
+  any_of:
+  - provisional credit
+  - provisionally credit
+  - temporary credit
+  - temporarily credit
+  note: ''
+must_not_say:
+- id: no-credit
+  any_of:
+  - you won't get anything
+  - you will not get anything
+  - no money until
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)(i)
+source_note: 'Yes: to take longer than 10 business days the bank must provisionally credit the account
+  within 10 business days of the notice.'
+seed_id: rege-012

@@ -1,0 +1,27 @@
+id: rege-027--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good afternoon. I would be grateful for your guidance on one matter. If I decide not to opt in to overdraft
+  coverage, would I lose any other features on my checking account?
+must_say:
+- id: same
+  any_of:
+  - same terms
+  - same account terms
+  - same features
+  - same conditions
+  - won't lose
+  - will not lose
+  - no other features
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.17(b)(3)
+source_note: 'No: consumers who don''t opt in must get the same account terms, conditions, and features,
+  except the ATM/one-time debit overdraft service.'
+seed_id: rege-027

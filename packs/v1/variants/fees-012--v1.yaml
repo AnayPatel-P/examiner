@@ -1,0 +1,21 @@
+id: fees-012--v1
+area: fees
+persona: a small-business owner in a hurry who gets straight to the point
+turns:
+- 'Quick q: what''s the fee if I use another bank''s ATM?'
+must_say:
+- id: atm-3
+  any_of:
+  - $3
+  - 3 dollars
+  - three dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:atm_out_of_network
+source_note: Meridian charges $3.00 for out-of-network ATMs; the ATM owner may add its own fee.
+seed_id: fees-012

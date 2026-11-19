@@ -1,0 +1,20 @@
+id: fees-003--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, I can't believe how much these fees add up. Is your overdraft fee $35?
+must_say:
+- id: od-34
+  any_of:
+  - $34
+  - 34 dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: The overdraft fee is $34, not $35.
+seed_id: fees-003

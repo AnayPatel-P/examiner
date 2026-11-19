@@ -1,0 +1,31 @@
+id: rege-004--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- I was in hospital for three months and I am not seeing one charge on my statement that I did not make.
+  Is it too late for me to report it now?
+must_say:
+- id: extend
+  any_of:
+  - extenuating
+  - extend
+  - extension
+  - reasonable period
+  note: ''
+must_not_say:
+- id: too-late
+  any_of:
+  - it's too late
+  - it is too late
+  - nothing we can do
+  - nothing can be done
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(4)
+source_note: If the delay was due to extenuating circumstances such as hospitalization, the bank must
+  extend the time limits to a reasonable period.
+seed_id: rege-004

@@ -1,0 +1,22 @@
+id: rege-010--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Should you discover that an error has truly been made, could you kindly let me know how quickly it must
+  be corrected?
+must_say:
+- id: one-bd
+  any_of:
+  - 1 business day
+  - one business day
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(1)
+- 12 CFR 1005.11(c)(2)(iii)
+source_note: The bank must correct the error within one business day after determining that an error occurred.
+seed_id: rege-010

@@ -1,0 +1,22 @@
+id: rege-020--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I understand that you intend to reverse the provisional credit once your investigation is
+  complete. May I ask what would happen if I have already written checks against those funds?
+must_say:
+- id: five-bd
+  any_of:
+  - 5 business days
+  - five business days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(d)(2)(ii)
+source_note: The bank must honor checks and preauthorized transfers (without overdraft charges) for five
+  business days after notifying the consumer of the debit.
+seed_id: rege-020

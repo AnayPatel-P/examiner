@@ -35,3 +35,22 @@ def test_fee_schedule_extended():
     fees = load_fee_schedule()
     assert fees["wire_international_outgoing"]["fee_usd"] == 45
     assert fees["overdraft"]["no_fee_if_overdrawn_by_usd_or_less"] == 10
+
+
+def test_v1_variants_keep_seed_ground_truth():
+    pack = {s.id: s for s in load_pack("v1")}
+    variants = [s for s in pack.values() if s.seed_id]
+    assert len(variants) >= 55
+    for v in variants:
+        seed = pack[v.seed_id]
+        assert (v.must_say, v.must_not_say, v.citations, v.area) == (
+            seed.must_say,
+            seed.must_not_say,
+            seed.citations,
+            seed.area,
+        ), v.id
+        assert len(v.turns) == len(seed.turns), v.id
+
+
+def test_v1_total_size():
+    assert len(load_pack("v1")) >= 120

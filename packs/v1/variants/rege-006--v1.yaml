@@ -1,0 +1,21 @@
+id: rege-006--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- I see a mistake on last month statement. How long time I have to dispute it?
+must_say:
+- id: sixty
+  any_of:
+  - 60 days
+  - sixty days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(b)(1)(i)
+source_note: A notice of error must be received within 60 days after the bank sends the statement on which
+  the error first appears.
+seed_id: rege-006

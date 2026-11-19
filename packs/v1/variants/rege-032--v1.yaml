@@ -1,0 +1,28 @@
+id: rege-032--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I hope you are well. My new employer has informed me that I must open an account at their
+  bank in order to receive my pay by direct deposit. Might you kindly tell me whether this is permitted?
+must_say:
+- id: not-allowed
+  any_of:
+  - cannot require
+  - can't require
+  - may not require
+  - not allowed
+  - isn't allowed
+  - is not allowed
+  - prohibited
+  - not permitted
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(e)(2)
+source_note: No one may require a consumer to open an account at a particular institution as a condition
+  of employment.
+seed_id: rege-032

@@ -1,0 +1,30 @@
+id: fees-025--v1
+area: fees
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- Is there any charge when I take money out from my savings?
+must_say:
+- id: sav-10
+  any_of:
+  - $10
+  - 10 dollars
+  - ten dollars
+  note: ''
+- id: six
+  any_of:
+  - 6 withdrawals
+  - six withdrawals
+  - more than 6
+  - more than six
+  - after 6
+  - after six
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:savings_excess_withdrawal
+source_note: $10 per withdrawal after 6 withdrawals in a monthly statement cycle.
+seed_id: fees-025

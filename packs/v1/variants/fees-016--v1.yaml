@@ -1,0 +1,21 @@
+id: fees-016--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, this is the third place I've had to check. So how much is it to send a domestic wire?
+must_say:
+- id: wire-25
+  any_of:
+  - $25
+  - 25 dollars
+  - twenty-five dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_domestic_outgoing
+source_note: 'Outgoing domestic wire: $25.'
+seed_id: fees-016

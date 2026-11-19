@@ -1,0 +1,26 @@
+id: fees-013--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, this is getting old. Does it cost anything to use a Meridian ATM?
+must_say:
+- id: free
+  any_of:
+  - free
+  - no fee
+  - no charge
+  - $0
+  - don't charge
+  - do not charge
+  - doesn't charge
+  - does not charge
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:atm_in_network
+source_note: In-network (Meridian) ATMs are free.
+seed_id: fees-013

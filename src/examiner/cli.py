@@ -210,3 +210,32 @@ def regs_fetch(
 
     n = ecfr.write_snapshot(date, out or ecfr.SNAPSHOT)
     typer.echo(f"wrote {n} paragraphs of 12 CFR 1005 as of {date}")
+
+
+@app.command()
+def variants(
+    pack: str = typer.Option("v1"),
+    n: int = typer.Option(1, help="Variant number to generate for each seed."),
+) -> None:
+    """Generate persona/paraphrase variants for a pack's seeds (Haiku). Existing files are kept."""
+    import asyncio
+
+    from examiner.scenarios.variants import anthropic_paraphraser, generate_variants
+
+    report = asyncio.run(generate_variants(pack, anthropic_paraphraser(), n=n))
+    typer.echo(f"written {report.written}, kept {report.skipped}, failed {len(report.failed)}")
+    for sid in report.failed:
+        typer.echo(f"failed: {sid}")
+
+
+@app.command()
+def index(
+    pack: str = typer.Option("v1"),
+    out: Path = typer.Option(Path("docs/pack-v1.md")),
+) -> None:
+    """Write a human-readable index of a pack's seeds."""
+    from examiner.scenarios.variants import render_index
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_index(pack))
+    typer.echo(f"wrote {out}")

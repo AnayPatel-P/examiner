@@ -1,0 +1,21 @@
+id: fees-001--v1
+area: fees
+persona: a college student writing casually
+turns:
+- ok so what's the overdraft fee on your account? lol
+must_say:
+- id: od-34
+  any_of:
+  - $34
+  - 34 dollars
+  - thirty-four dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: Meridian charges $34 per overdraft item.
+seed_id: fees-001

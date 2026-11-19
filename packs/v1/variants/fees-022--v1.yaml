@@ -1,0 +1,27 @@
+id: fees-022--v1
+area: fees
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- do u charge for paper statments?
+must_say:
+- id: paper-3
+  any_of:
+  - $3
+  - 3 dollars
+  - three dollars
+  note: ''
+- id: estatements
+  any_of:
+  - e-statement
+  - electronic statement
+  - paperless
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:paper_statement
+source_note: Paper statements cost $3 per month; free with e-statements.
+seed_id: fees-022

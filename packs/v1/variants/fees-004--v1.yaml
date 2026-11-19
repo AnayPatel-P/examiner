@@ -1,0 +1,31 @@
+id: fees-004--v1
+area: fees
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good afternoon. I would be most grateful if you could kindly advise me on something. Should my account
+  happen to be overdrawn by only $5, would I be charged an overdraft fee?
+must_say:
+- id: de-minimis
+  any_of:
+  - $10 or less
+  - $10 or under
+  - 10 dollars or less
+  - under $10
+  - less than $10
+  - no fee
+  note: ''
+must_not_say:
+- id: charged-34
+  any_of:
+  - you will be charged $34
+  - you'll be charged $34
+  - yes, $34
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: No overdraft fee if the account is overdrawn by $10 or less.
+seed_id: fees-004

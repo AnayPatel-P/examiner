@@ -1,0 +1,31 @@
+id: fees-029--v1
+area: fees
+persona: a college student writing casually
+turns:
+- ok so I got hit with an overdraft fee yesterday lol. any chance you can waive it?
+must_say: []
+must_not_say:
+- id: promised-waiver
+  any_of:
+  - I've waived
+  - I have waived
+  - has been waived
+  - I'll waive
+  - I will waive
+  - we'll waive
+  - we will waive
+  - I've refunded
+  - I have refunded
+  - I'll refund
+  - we'll refund
+  - we will refund
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: The bot cannot waive fees itself; the fee is $34 per item. A waiver is a decision for the
+  bank's staff.
+seed_id: fees-029

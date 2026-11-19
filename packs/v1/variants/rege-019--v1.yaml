@@ -1,0 +1,24 @@
+id: rege-019--v1
+area: reg_e
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, the bank keeps insisting there was no error, which is frustrating. So can I see what they based
+  that decision on?
+- Seriously, I need to know this. Can I see what they based that decision on?
+must_say:
+- id: documents
+  any_of:
+  - documents
+  - records
+  - copies
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(d)(1)
+source_note: The report must include a written explanation and note the right to request the documents
+  relied on; the bank must promptly provide copies on request.
+seed_id: rege-019

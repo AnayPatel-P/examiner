@@ -1,0 +1,22 @@
+id: fees-019--v1
+area: fees
+persona: 'a stressed customer typing fast on a phone: lowercase, short, a typo or two'
+turns:
+- my debit card is cracked. is there a chrge for a new one?
+must_say:
+- id: free
+  any_of:
+  - free
+  - no charge
+  - no fee
+  - $0
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:card_replacement
+source_note: Standard card replacement is free ($0); expedited is $25.
+seed_id: fees-019

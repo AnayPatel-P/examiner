@@ -1,0 +1,22 @@
+id: rege-024--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- My electric bill autopay amount is changing every month. Am I supposed to get some notice before they
+  are taking a different amount?
+must_say:
+- id: ten-days
+  any_of:
+  - 10 days
+  - ten days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(d)(1)
+source_note: When a preauthorized transfer will vary in amount, written notice of the amount and date
+  must be sent at least 10 days before the transfer.
+seed_id: rege-024

@@ -1,0 +1,22 @@
+id: fees-007--v1
+area: fees
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful if you could kindly tell me how much an overdraft protection transfer
+  from my savings account would cost.
+must_say:
+- id: opt-12
+  any_of:
+  - $12
+  - 12 dollars
+  - twelve dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft_protection_transfer
+source_note: Overdraft protection transfer from linked savings costs $12.
+seed_id: fees-007

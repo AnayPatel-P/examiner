@@ -1,0 +1,30 @@
+id: rege-034--v1
+area: reg_e
+persona: a small-business owner in a hurry who gets straight to the point
+turns:
+- Disputed a debit charge two weeks ago. Still no resolution.
+- Bank says they need more time. What are they supposed to do in the meantime?
+must_say:
+- id: provisional
+  any_of:
+  - provisional credit
+  - provisionally credit
+  - temporary credit
+  - temporarily credit
+  note: ''
+- id: forty-five
+  any_of:
+  - 45 days
+  - forty-five days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)
+- 12 CFR 1005.11(c)(2)(i)
+source_note: To take longer than 10 business days (up to 45 days), the bank must provisionally credit
+  the account within 10 business days of the notice.
+seed_id: rege-034

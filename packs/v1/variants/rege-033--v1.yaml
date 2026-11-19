@@ -1,0 +1,22 @@
+id: rege-033--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- My wallet with my debit card is stolen yesterday.
+- If I am reporting it right now, what is the most I could be losing?
+must_say:
+- id: cap-50
+  any_of:
+  - $50
+  - 50 dollars
+  - fifty dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(1)
+source_note: Reporting within two business days of learning of the theft caps liability at $50 (or less).
+seed_id: rege-033

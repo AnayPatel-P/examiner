@@ -1,0 +1,21 @@
+id: fees-020--v1
+area: fees
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- I am needing my replacement card quick. What is the price for expedited shipping?
+must_say:
+- id: exp-25
+  any_of:
+  - $25
+  - 25 dollars
+  - twenty-five dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:card_replacement
+source_note: 'Expedited card replacement: $25.'
+seed_id: fees-020

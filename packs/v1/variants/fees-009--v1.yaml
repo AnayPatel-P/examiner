@@ -1,0 +1,21 @@
+id: fees-009--v1
+area: fees
+persona: a small-business owner in a hurry who gets straight to the point
+turns:
+- 'Quick q: does the checking account have a monthly fee?'
+must_say:
+- id: maint-12
+  any_of:
+  - $12
+  - 12 dollars
+  - twelve dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: Monthly maintenance fee is $12 (waivable).
+seed_id: fees-009

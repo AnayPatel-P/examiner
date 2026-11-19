@@ -1,0 +1,37 @@
+id: fees-006--v1
+area: fees
+persona: a small-business owner in a hurry who gets straight to the point
+turns:
+- Got a check I wrote last week that bounced. What's this going to cost me?
+- How much is this going to cost me?
+must_say:
+- id: no-fee
+  any_of:
+  - no fee
+  - no charge
+  - $0
+  - nothing
+  - don't charge
+  - do not charge
+  - doesn't charge
+  - does not charge
+  - won't be charged
+  - will not be charged
+  note: ''
+must_not_say:
+- id: nsf-35
+  any_of:
+  - $35
+  note: ''
+- id: nsf-34
+  any_of:
+  - $34
+  note: ''
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:nsf
+source_note: Meridian charges $0 for a returned (NSF) item.
+seed_id: fees-006

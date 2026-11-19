@@ -1,0 +1,22 @@
+id: rege-030--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- I am sending international money transfer just now and I am making a mistake. Can I cancel it?
+must_say:
+- id: thirty-min
+  any_of:
+  - 30 minutes
+  - thirty minutes
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.34(a)
+- 12 CFR 1005.34(b)
+source_note: A sender can cancel within 30 minutes of payment (if the funds haven't been picked up or
+  deposited); the provider must refund within three business days.
+seed_id: rege-030

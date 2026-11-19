@@ -1,0 +1,21 @@
+id: rege-018--v1
+area: reg_e
+persona: an annoyed customer who complains briefly before asking
+turns:
+- 'Ugh, this is so frustrating. I''m disputing a debit card charge from my trip to Spain, and I need to
+  know: how long does the bank have to investigate?'
+must_say:
+- id: ninety
+  any_of:
+  - 90 days
+  - ninety days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(3)(ii)(A)
+source_note: Transfers not initiated within a state get up to 90 days (instead of 45).
+seed_id: rege-018

@@ -1,0 +1,30 @@
+id: rege-005--v1
+area: reg_e
+persona: a retiree who writes formally and politely in full sentences
+turns:
+- Good day. I would be most grateful if you could kindly advise me of the various ways in which I may
+  notify your institution about a transfer of funds that I did not authorize.
+must_say:
+- id: phone
+  any_of:
+  - phone
+  - telephone
+  - call
+  note: ''
+- id: writing
+  any_of:
+  - in writing
+  - written
+  - write
+  - letter
+  - mail
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(5)(ii)
+source_note: The consumer may notify the institution in person, by telephone, or in writing.
+seed_id: rege-005

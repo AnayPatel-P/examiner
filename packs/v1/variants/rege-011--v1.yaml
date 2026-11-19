@@ -1,0 +1,22 @@
+id: rege-011--v1
+area: reg_e
+persona: a non-native English speaker using simple, slightly unusual phrasing
+turns:
+- How long is the longest time that a normal dispute investigation can take?
+must_say:
+- id: forty-five
+  any_of:
+  - 45 days
+  - forty-five days
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)
+- 12 CFR 1005.11(c)(3)(ii)
+source_note: 'Up to 45 days with provisional credit (90 days for certain transfers: foreign, point-of-sale
+  debit, or new accounts).'
+seed_id: rege-011

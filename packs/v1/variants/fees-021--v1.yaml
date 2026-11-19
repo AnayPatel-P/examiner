@@ -1,0 +1,21 @@
+id: fees-021--v1
+area: fees
+persona: an annoyed customer who complains briefly before asking
+turns:
+- Ugh, this is ridiculous, I've been trying to figure this out forever. How much is a cashier's check?
+must_say:
+- id: cc-10
+  any_of:
+  - $10
+  - 10 dollars
+  - ten dollars
+  note: ''
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:cashiers_check
+source_note: 'Cashier''s check: $10.'
+seed_id: fees-021
