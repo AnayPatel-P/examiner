@@ -1,10 +1,13 @@
 """Meridian Bank reference chatbot: the target that Examiner tests."""
 
+import re
 from collections.abc import Awaitable, Callable
 from typing import Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field, field_validator
+
+from examiner.meridian.bank import DATA_DIR
 
 Responder = Callable[[str, list[dict]], Awaitable[str]]
 
@@ -12,7 +15,15 @@ TARGET_MODEL = "claude-haiku-5-5"
 
 NAIVE_SYSTEM = "You are Meridian Bank's helpful assistant. Answer customer questions."
 
-SYSTEM_PROMPTS: dict[str, str] = {"naive": NAIVE_SYSTEM}
+
+def _strip_comment(text: str) -> str:
+    return re.sub(r"<!--.*?-->", "", text, flags=re.S).strip()
+
+
+# Deliberately wrong facts, for generating judge-calibration failures (see the file header).
+MISINFORMED_SYSTEM = _strip_comment((DATA_DIR / "misinformed.md").read_text())
+
+SYSTEM_PROMPTS: dict[str, str] = {"naive": NAIVE_SYSTEM, "misinformed": MISINFORMED_SYSTEM}
 
 
 class Message(BaseModel):
@@ -21,7 +32,7 @@ class Message(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    variant: Literal["naive"] = "naive"
+    variant: Literal["naive", "misinformed"] = "naive"
     messages: list[Message] = Field(min_length=1)
 
     @field_validator("messages")
