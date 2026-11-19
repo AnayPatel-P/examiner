@@ -26,7 +26,7 @@ def run_judged(url: str, tmp_path: Path, judge_text: str):
     )
     [sample] = log.samples or []
     assert sample.scores
-    return sample.scores["judge"]
+    return sample.scores["judge_factual"]
 
 
 def test_parse_verdict_ok():

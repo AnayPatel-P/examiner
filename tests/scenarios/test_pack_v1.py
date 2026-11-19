@@ -42,6 +42,7 @@ def test_v1_variants_keep_seed_ground_truth():
     variants = [s for s in pack.values() if s.seed_id]
     assert len(variants) >= 55
     for v in variants:
+        assert v.seed_id is not None
         seed = pack[v.seed_id]
         assert (v.must_say, v.must_not_say, v.citations, v.area) == (
             seed.must_say,

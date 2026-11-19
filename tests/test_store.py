@@ -39,12 +39,12 @@ def test_index_log_writes_run_and_results(log: EvalLog, tmp_path: Path):
     run = store.run(run_id)
     assert run is not None
     assert run["pack"] == "smoke" and run["variant"] == "naive"
-    assert run["judge_version"] == "factual-v1"
+    assert run["judge_version"] == "factual-v2"
     rows = {r["sample_id"]: r for r in store.results(run_id)}
     assert len(rows) == 5
     od = rows["fees-overdraft-amount"]
     assert od["fact_pass"] == 1 and od["judge_pass"] == 1
-    assert od["judge_rationale"] == "ok"
+    assert od["judge_rationale"] == "[factual] ok"
     assert od["citation"] == "Meridian fee schedule: overdraft"
     assert "BOT: Our overdraft fee is $34." in od["transcript"]
     assert rows["rege-investigation-time"]["fact_pass"] == 0

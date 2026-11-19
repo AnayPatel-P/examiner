@@ -64,7 +64,7 @@ def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monke
     [run] = store.runs()
     # mockllm's judge output is unparseable; give every result a verdict for the kappa step
     with store.db:
-        store.db.execute("UPDATE result SET judge_pass = 1")
+        store.db.execute("UPDATE score SET passed = 1")
     out = tmp_path / "labels.csv"
     res = runner.invoke(app, ["label-export", "--run", run["id"], "--out", str(out), "--db", db])
     assert res.exit_code == 0, res.output

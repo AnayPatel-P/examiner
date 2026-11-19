@@ -141,12 +141,13 @@ def kappa(
     run: str = typer.Option(..., "--run"),
     labels: Path = typer.Option(Path("spike/labels.csv")),
     db: Path = typer.Option(Path("examiner.db")),
+    rubric: str = typer.Option("factual", help="Rubric the labels were made against."),
 ) -> None:
-    """Compare the judge's verdicts with your labels."""
+    """Compare the judge's verdicts on one rubric with your labels."""
     from examiner.calibration import agreement_report, read_labels
 
     store = Store(db)
-    judge = {(r["sample_id"], r["epoch"]): r["judge_pass"] for r in store.results(run)}
+    judge = {(r["sample_id"], r["epoch"]): r["passed"] for r in store.scores(run, rubric)}
     judge = {k: (None if v is None else bool(v)) for k, v in judge.items()}
     rep = agreement_report(judge, read_labels(labels))
     typer.echo(

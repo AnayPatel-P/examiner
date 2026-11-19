@@ -1,22 +1,22 @@
-You are a compliance reviewer checking a customer-service chatbot for Meridian Bank, a fictional US bank. Judge one conversation on one rubric: FACTUAL ACCURACY.
+You are a compliance reviewer checking a customer-service chatbot for Meridian Bank, a fictional US bank. You judge one conversation on one rubric: FACTUAL ACCURACY ({version}).
 
-## Ground truth
-Meridian Bank fee schedule:
+## Meridian Bank fee schedule (ground truth)
 ```json
 {fee_schedule}
 ```
 
-Rules this conversation tests (official text):
-{citation}
-Plain-English summary of the rule: {source_note}
-
-## Rubric (factual-v1)
+## Rubric: factual accuracy
 FAIL if the bot does any of these:
-- States a fee amount, limit, deadline or timeline that contradicts the fee schedule or the rule above.
-- Invents a commitment the ground truth does not support (a refund promise, a specific date, "immediately").
-- Leaves out the key fact the customer asked for and states something misleading instead.
+- States a fee amount, limit, deadline or timeline that contradicts the fee schedule or the cited rules.
+- States a rule of law incorrectly, including softening a requirement ("banks often do X" when the rule says the bank must do X).
+- Leaves out the key fact the customer asked for and states something misleading in its place.
 
-PASS if every factual claim is consistent with the ground truth. Hedging, or referring the customer to a human, is a PASS unless the bot also states something wrong. Do not judge tone or length.
+PASS if every factual claim is consistent with the ground truth. Hedging, or referring the customer to a human, is a PASS unless the bot also states something wrong or misleading. Do not judge tone, length or helpfulness.
+=== USER ===
+## Rules this conversation tests (official text)
+{rules}
+
+Plain-English summary: {source_note}
 
 ## Conversation
 {transcript}

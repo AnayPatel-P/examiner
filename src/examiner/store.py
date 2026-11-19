@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS result (
     citation TEXT, error TEXT,
     PRIMARY KEY (run_id, sample_id, epoch)
 );
+CREATE TABLE IF NOT EXISTS score (
+    run_id TEXT NOT NULL REFERENCES run(id),
+    sample_id TEXT NOT NULL,
+    epoch INTEGER NOT NULL,
+    rubric TEXT NOT NULL,
+    passed INTEGER,
+    rationale TEXT,
+    judge_version TEXT,
+    PRIMARY KEY (run_id, sample_id, epoch, rubric)
+);
 """
 
 TARGET_MODEL = "anthropic/claude-haiku-5-5"
@@ -52,24 +62,34 @@ class Store:
         judge_model = grader.model if grader else None
         costs = [u.total_cost for u in (log.stats.model_usage or {}).values()]
         cost = sum(c for c in costs if c is not None) if any(c is not None for c in costs) else None
-        judge_version = None
+        versions: set[str] = set()
         rows = []
+        score_rows = []
         for s in log.samples or []:
             scores = s.scores or {}
             fact = scores.get("fact_check")
-            judge = scores.get("judge")
-            if judge and judge.metadata:
-                judge_version = judge.metadata.get("judge_version", judge_version)
             cites = s.metadata.get("scenario", {}).get("citations") or []
             citation = "; ".join(display_citation(c) for c in cites) or None
-            judge_failed = bool(judge and judge.reason == "grader_failed")
-            if judge is None or judge_failed:
+            verdicts: list[int | None] = []
+            notes: list[str] = []
+            for key, sc in scores.items():
+                meta = sc.metadata or {}
+                if not key.startswith("judge_") or meta.get("skipped"):
+                    continue
+                rubric = key.removeprefix("judge_")
+                failed = sc.reason == "grader_failed"
+                passed = None if failed else _passed(sc.value)
+                rationale = f"grader_failed: {sc.explanation}" if failed else sc.explanation
+                version = meta.get("judge_version")
+                if version:
+                    versions.add(version)
+                verdicts.append(passed)
+                notes.append(f"[{rubric}] {rationale}")
+                score_rows.append((run_id, str(s.id), s.epoch, rubric, passed, rationale, version))
+            if not verdicts or any(v is None for v in verdicts):
                 judge_pass = None
             else:
-                judge_pass = _passed(judge.value)
-            rationale = judge.explanation if judge else None
-            if judge_failed:
-                rationale = f"grader_failed: {rationale}"
+                judge_pass = int(all(verdicts))
             rows.append(
                 (
                     run_id,
@@ -79,11 +99,12 @@ class Store:
                     _passed(fact.value) if fact else None,
                     json.dumps(fact.metadata) if fact else None,
                     judge_pass,
-                    rationale,
+                    "\n".join(notes) or None,
                     citation,
                     s.error.message if s.error else None,
                 )
             )
+        judge_version = ",".join(sorted(versions)) or None
         with self.db:
             self.db.execute(
                 "INSERT OR REPLACE INTO run VALUES (?,?,?,?,?,?,?,?,?,?)",
@@ -101,6 +122,7 @@ class Store:
                 ),
             )
             self.db.executemany("INSERT OR REPLACE INTO result VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
+            self.db.executemany("INSERT OR REPLACE INTO score VALUES (?,?,?,?,?,?,?)", score_rows)
         return run_id
 
     def run(self, run_id: str) -> sqlite3.Row | None:
@@ -108,6 +130,14 @@ class Store:
 
     def runs(self) -> list[sqlite3.Row]:
         return self.db.execute("SELECT * FROM run ORDER BY started_at DESC").fetchall()
+
+    def scores(self, run_id: str, rubric: str | None = None) -> list[sqlite3.Row]:
+        sql = "SELECT * FROM score WHERE run_id = ?"
+        args: tuple = (run_id,)
+        if rubric:
+            sql += " AND rubric = ?"
+            args += (rubric,)
+        return self.db.execute(sql + " ORDER BY sample_id, epoch, rubric", args).fetchall()
 
     def results(self, run_id: str) -> list[sqlite3.Row]:
         return self.db.execute(
