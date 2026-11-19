@@ -72,3 +72,17 @@ def test_unknown_sample_404(api: TestClient):
 def test_cors_allows_vite(api: TestClient):
     r = api.get("/api/runs", headers={"Origin": "http://localhost:5173"})
     assert r.headers.get("access-control-allow-origin") == "http://localhost:5173"
+
+
+def test_run_with_missing_pack_does_not_500(tmp_path: Path):
+    from tests.api.seed import add_result, add_run, verdicts
+
+    s = seeded(tmp_path / "y.db")
+    add_run(s, "gone1")
+    s.db.execute("UPDATE run SET pack = 'deleted-pack' WHERE id = 'gone1'")
+    s.db.commit()
+    add_result(s, "gone1", "fees-001", 1, verdicts(1, 1, 1))
+    api = TestClient(create_api(tmp_path / "y.db"), raise_server_exceptions=False)
+    d = api.get("/api/runs/gone1/results/fees-001")
+    assert d.status_code == 200 and d.json()["scenario"] is None
+    assert api.get("/api/label-queue").status_code == 200

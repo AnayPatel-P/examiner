@@ -140,3 +140,14 @@ def test_misinformed_and_guarded_differ():
 
     assert len({GUARDED_SYSTEM, MISINFORMED_SYSTEM, NAIVE_SYSTEM}) == 3
     assert "$35" not in GUARDED_SYSTEM
+
+
+def test_guarded_prompt_new_account_and_dispute_timing():
+    from examiner.meridian.app import GUARDED_SYSTEM
+
+    # 1005.11(c)(3)(i): 20 business days replaces 10 for both the decision and provisional credit
+    assert "20 business days if the transfer was within 30 days after your first deposit" in (
+        GUARDED_SYSTEM
+    )
+    # 1005.11(c)(1): results are reported after the determination, not "result within 10 days"
+    assert "tell you the result within 10 business days" not in GUARDED_SYSTEM

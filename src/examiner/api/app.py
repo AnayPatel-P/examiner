@@ -17,11 +17,12 @@ from examiner.reports import (
     overall_pass,
     rubric_map,
     run_summary,
+    scenarios_for,
     scorecard,
 )
 from examiner.runner.judge import rubric_guide
 from examiner.scenarios.lint import cited_text
-from examiner.scenarios.schema import RUBRIC_NAMES, Rubric, display_citation, load_pack
+from examiner.scenarios.schema import RUBRIC_NAMES, Rubric, display_citation
 from examiner.store import Store
 
 
@@ -59,16 +60,16 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
     @api.get("/api/runs")
     def runs() -> list[dict]:
         s = store()
-        return [run_summary(r, s.results(r["id"])) for r in s.runs()]
+        return [run_summary(r, s.results(r["id"]), s.scores(r["id"])) for r in s.runs()]
 
     @api.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict:
         s = store()
         run = get_run(s, run_id)
-        results = s.results(run_id)
+        results, scores = s.results(run_id), s.scores(run_id)
         return {
-            "run": run_summary(run, results),
-            "scorecard": scorecard(results, s.scores(run_id), areas_for(run["pack"])),
+            "run": run_summary(run, results, scores),
+            "scorecard": scorecard(results, scores, areas_for(run["pack"])),
         }
 
     @api.get("/api/runs/{run_id}/results")
@@ -84,7 +85,7 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
         out = []
         for r in s.results(run_id):
             row_area = areas.get(r["sample_id"], "unknown")
-            overall = overall_pass(r)
+            overall = overall_pass(r, rubrics.get((r["sample_id"], r["epoch"])))
             if area and row_area != area:
                 continue
             if status == "error" and not r["error"]:
@@ -115,14 +116,14 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
         row = s.result(run_id, sample_id, epoch)
         if row is None:
             raise HTTPException(404, f"no result {sample_id} epoch {epoch} in run {run_id}")
-        scenario = next((x for x in load_pack(run["pack"]) if x.id == sample_id), None)
+        scenario = scenarios_for(run["pack"]).get(sample_id)
         cites = scenario.citations if scenario else []
         return {
             "run_id": run_id,
             "sample_id": sample_id,
             "epoch": epoch,
             "area": scenario.area if scenario else "unknown",
-            "overall": overall_pass(row),
+            "overall": overall_pass(row, rubric_map(s.scores(run_id)).get((sample_id, epoch))),
             "fact_pass": row["fact_pass"],
             "judge_pass": row["judge_pass"],
             "error": row["error"],
@@ -156,7 +157,7 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
         todo = []
         for run_row in run_rows:
             rid = run_row["id"]
-            pack = {x.id: x for x in load_pack(run_row["pack"])}
+            pack = scenarios_for(run_row["pack"])
             judged = {
                 (x["sample_id"], x["epoch"])
                 for x in s.scores(rid, rubric)
@@ -218,8 +219,8 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
         res_a, res_b = s.results(a), s.results(b)
         return {
             "check": check,
-            "a": run_summary(run_a, res_a),
-            "b": run_summary(run_b, res_b),
+            "a": run_summary(run_a, res_a, s.scores(a)),
+            "b": run_summary(run_b, res_b, s.scores(b)),
         } | diff_runs(res_a, s.scores(a), res_b, s.scores(b), check)
 
     return api

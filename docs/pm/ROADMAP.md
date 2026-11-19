@@ -37,14 +37,14 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 ## Phase 3 — Guarded bot + API
 **Goal:** the before/after story and the backend the dashboard needs.
 **Demo:** naive vs guarded runs side by side via API; diff JSON shows fixed/broke.
-- [ ] 3.1 `guarded` Meridian variant: grounded on fee schedule + FAQ, refusal and hand-off rules
-- [ ] 3.2 FastAPI read API: runs, results, scorecard aggregates, transcript detail
-- [ ] 3.3 Labels API (create/list) + calibration computation (kappa per rubric, confusion counts)
-- [ ] 3.4 Run-vs-run diff endpoint
-- [ ] 3.5 Tests for aggregates, kappa and diff logic (TDD)
+- [x] 3.1 `guarded` Meridian variant: grounded on fee schedule + FAQ, refusal and hand-off rules
+- [x] 3.2 FastAPI read API: runs, results, scorecard aggregates, transcript detail
+- [x] 3.3 Labels API (create/list) + calibration computation (kappa per rubric, confusion counts)
+- [x] 3.4 Run-vs-run diff endpoint
+- [x] 3.5 Tests for aggregates, kappa and diff logic (TDD)
 **Done when:**
-- [ ] Guarded beats naive on overall pass rate (target ≥ 20 pts) or the reason is documented
-- [ ] All endpoints covered by tests
+- [x] Guarded beats naive on overall pass rate (target ≥ 20 pts) or the reason is documented (20.5% → 93.7%, D16)
+- [x] All endpoints covered by tests
 
 ## Phase 4 — Dashboard
 **Goal:** the web app: browse, drill in, label, diff.

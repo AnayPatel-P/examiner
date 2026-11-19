@@ -2,29 +2,49 @@
 
 import sqlite3
 from collections.abc import Iterable, Mapping, Sequence
-from functools import cache
 from typing import Any
 
-from examiner.scenarios.schema import RUBRIC_NAMES, load_pack
+import yaml
+
+from examiner.scenarios.schema import RUBRIC_NAMES, Scenario, load_pack
 
 Row = Mapping[str, Any] | sqlite3.Row
 
 CHECKS = ["overall", "fact", "judge", *RUBRIC_NAMES]
 
 
-def overall_pass(row: Row) -> int | None:
-    """Pass only if the fact check and every judged rubric passed; NULL if anything is missing."""
-    if row["error"] or row["fact_pass"] is None or row["judge_pass"] is None:
+def kleene_and(values: Iterable[int | None]) -> int | None:
+    """0 if any value is a definite fail, else NULL if any is missing, else 1."""
+    vals = list(values)
+    if any(v == 0 for v in vals):
+        return 0
+    if not vals or any(v is None for v in vals):
         return None
-    return int(bool(row["fact_pass"]) and bool(row["judge_pass"]))
+    return 1
 
 
-@cache
-def areas_for(pack: str) -> dict[str, str]:
+def overall_pass(row: Row, rubrics: Mapping[str, int | None] | None = None) -> int | None:
+    """Fact check AND every judged rubric. A definite fail counts even if another part is
+    missing; NULL only when nothing failed and something is missing. Errored samples are NULL."""
+    if row["error"]:
+        return None
+    return kleene_and([row["fact_pass"], _judge(row, rubrics or {})])
+
+
+def _judge(row: Row, rubrics: Mapping[str, int | None]) -> int | None:
+    return kleene_and(rubrics.values()) if rubrics else row["judge_pass"]
+
+
+def scenarios_for(pack: str) -> dict[str, Scenario]:
+    """Scenarios by id, or {} if the pack is gone or unreadable (old runs stay browsable)."""
     try:
-        return {s.id: s.area for s in load_pack(pack)}
-    except (FileNotFoundError, ValueError):
+        return {s.id: s for s in load_pack(pack)}
+    except (OSError, ValueError, yaml.YAMLError):
         return {}
+
+
+def areas_for(pack: str) -> dict[str, str]:
+    return {sid: s.area for sid, s in scenarios_for(pack).items()}
 
 
 def _cell(passed: int, n: int) -> dict:
@@ -33,13 +53,13 @@ def _cell(passed: int, n: int) -> dict:
 
 def check_value(row: Row, check: str, rubrics: Mapping[str, int | None]) -> int | None:
     if check == "overall":
-        return overall_pass(row)
+        return overall_pass(row, rubrics)
     if row["error"]:
         return None
     if check == "fact":
         return row["fact_pass"]
     if check == "judge":
-        return row["judge_pass"]
+        return _judge(row, rubrics)
     return rubrics.get(check)
 
 
@@ -75,7 +95,7 @@ def scorecard(
     return {a: {c: _cell(*counts[a][c]) for c in CHECKS} | {"errors": errors[a]} for a in order}
 
 
-def run_summary(run: Row, results: Sequence[Row]) -> dict:
+def run_summary(run: Row, results: Sequence[Row], scores: Iterable[Row] = ()) -> dict:
     keys = [
         "id",
         "target",
@@ -90,8 +110,14 @@ def run_summary(run: Row, results: Sequence[Row]) -> dict:
     out = {k: run[k] for k in keys}
     out["n"] = len(results)
     out["errors"] = sum(1 for r in results if r["error"])
+    by_key = rubric_map(scores)
     for check in ("overall", "fact", "judge"):
-        vals = [v for r in results if (v := check_value(r, check, {})) is not None]
+        vals = [
+            v
+            for r in results
+            if (v := check_value(r, check, by_key.get((r["sample_id"], r["epoch"]), {})))
+            is not None
+        ]
         out[check] = _cell(sum(vals), len(vals))
     return out
 

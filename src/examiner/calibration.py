@@ -84,6 +84,9 @@ def calibration_by_rubric(rows_by_rubric: dict[str, list]) -> dict[str, dict]:
             human[key] = bool(r["human_pass"])
         rep = agreement_report(judge, human)
         d = rep.__dict__.copy()
+        d["n_labels"] = len(rows)
+        if rep.n == 0:  # no data, not "no agreement"
+            d["kappa"] = d["raw_agreement"] = None
         d["disagreements"] = [
             {"run_id": k.split("\t")[0], "sample_id": k.split("\t")[1], "epoch": ep}
             for k, ep in rep.disagreements

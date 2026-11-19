@@ -34,10 +34,12 @@ def test_scorecard_by_area_and_all():
     assert card["fees"]["fact"] == {"passed": 1, "n": 2, "rate": 0.5}
     assert card["fees"]["factual"] == {"passed": 2, "n": 2, "rate": 1.0}
     assert card["fees"]["disclosure"] == {"passed": 0, "n": 0, "rate": None}
-    assert card["fees"]["overall"] == {"passed": 1, "n": 2, "rate": 0.5}
+    # fees-001 has an unjudged rubric and nothing failed -> unscored; fees-002 fact fail
+    assert card["fees"]["overall"] == {"passed": 0, "n": 1, "rate": 0.0}
     assert card["reg_e"]["fact"]["n"] == 1 and card["reg_e"]["errors"] == 1
-    assert card["all"]["overall"] == {"passed": 1, "n": 3, "rate": 1 / 3}
-    assert card["all"]["judge"]["passed"] == 2 and card["all"]["errors"] == 1
+    assert card["all"]["overall"] == {"passed": 0, "n": 2, "rate": 0.0}
+    assert card["all"]["judge"] == {"passed": 1, "n": 2, "rate": 0.5}
+    assert card["all"]["errors"] == 1
     assert list(card)[-1] == "all"
 
 
@@ -45,3 +47,18 @@ def test_scorecard_unknown_area():
     results = [{"sample_id": "zzz", "epoch": 1, "fact_pass": 1, "judge_pass": 1, "error": None}]
     card = scorecard(results, [], {})
     assert card["unknown"]["overall"]["passed"] == 1
+
+
+def test_overall_definite_fail_beats_null():
+    # fact 0 with an unjudged rubric is still a fail (Kleene AND)
+    assert overall_pass({"fact_pass": 0, "judge_pass": None, "error": None}) == 0
+
+
+def test_judge_fail_on_one_rubric_beats_null_on_another():
+    from examiner.reports import check_value
+
+    row = {"fact_pass": 1, "judge_pass": None, "error": None}
+    rubrics = {"factual": 0, "disclosure": None, "commitments": 1}
+    assert check_value(row, "judge", rubrics) == 0
+    assert check_value(row, "overall", rubrics) == 0
+    assert check_value(row, "judge", {"factual": 1, "disclosure": None}) is None

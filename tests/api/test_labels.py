@@ -135,3 +135,10 @@ def test_labels_import_csv(db: Path, tmp_path: Path):
     assert {(x["sample_id"], x["human_pass"]) for x in rows} == {("fees-001", 1), ("fees-002", 0)}
     r = CliRunner().invoke(app, ["kappa", "--run", "naive1", "--db", str(db)])
     assert r.exit_code == 0 and "n=2" in r.output, r.output
+
+
+def test_calibration_no_comparable_labels_is_null(api: TestClient):
+    label(api, "guard1", "rege-020", True, rubric="commitments")  # judge NULL
+    c = api.get("/api/calibration").json()["commitments"]
+    assert c["n"] == 0 and c["n_labels"] == 1 and c["kappa"] is None
+    assert c["raw_agreement"] is None
