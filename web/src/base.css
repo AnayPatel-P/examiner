@@ -111,7 +111,8 @@ tr.total th.row-head { background: var(--surface-2); }
 .turn-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 75ch; }
 
 /* Citation: the law looks like the law */
-.cite { border-left: 3px solid var(--signal); padding: var(--s1) 0 var(--s1) var(--s4); display: grid; gap: var(--s2); }
+.cite { min-width: 0; border-left: 3px solid var(--signal); padding: var(--s1) 0 var(--s1) var(--s4); display: grid; gap: var(--s2); }
+.cite-head > * { min-width: 0; overflow-wrap: anywhere; }
 .cite-head { font-size: var(--fs-xs); color: var(--muted); display: flex; gap: var(--s2); flex-wrap: wrap; align-items: baseline; }
 .cite-head strong { color: var(--ink); font-family: var(--font-ui); }
 .cite-text { font-family: var(--font-law); font-size: var(--fs-md); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }

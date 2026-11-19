@@ -69,10 +69,10 @@ export default function App() {
           </nav>
           <ThemeToggle />
         </div>
+        <div className="banner">
+          <p>Not legal advice. Meridian Bank is fictional; scenarios test public Reg E rules and a made-up fee schedule.</p>
+        </div>
       </header>
-      <div className="banner">
-        <p>Not legal advice. Meridian Bank is fictional; scenarios test public Reg E rules and a made-up fee schedule.</p>
-      </div>
       <main id="main" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Runs />} />

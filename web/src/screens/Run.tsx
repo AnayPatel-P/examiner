@@ -11,7 +11,7 @@ const AREA_LABEL: Record<string, string> = { fees: 'Fees', reg_e: 'Reg E', all: 
 
 function ScorecardTable({ card }: { card: Scorecard }) {
   return (
-    <TableWrap label="Scorecard">
+    <TableWrap label="Scorecard table, scrolls sideways">
       <table>
         <caption className="sr-only">Pass rate by area and check</caption>
         <thead>
@@ -127,7 +127,7 @@ export default function RunPage() {
           </Empty>
         )}
         {results.data && results.data.length > 0 && (
-          <TableWrap label="Scenarios">
+          <TableWrap label="Scenarios table, scrolls sideways">
             <table>
               <caption className="sr-only">Scenarios in this run</caption>
               <thead>

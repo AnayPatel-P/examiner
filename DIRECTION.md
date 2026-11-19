@@ -32,7 +32,7 @@ Character comes from:
 Mix: Workhorse-dominant: 0 Showcase, 1 Feature (Diff), 7 Workhorse.
 
 ## Signature moment
-On the Diff page, two strips of 127 ticks, one per scenario in pack order, show run A and run B. On load, B's ticks change from A's verdict to their own in a single left-to-right wave (stagger 2 ms per tick, 300 ms total, `--ease-out`). Then the fixed and broke ticks get a ring and the headline count settles at "Fixed 90 · Broke 1". The still state is the two strips with the counts, which is also what reduced-motion users see. Clicking a tick opens that scenario's two transcripts side by side.
+On the Diff page, two strips of 127 ticks, one per scenario in pack order, show run A and run B. On load, B's ticks change from A's verdict to their own in a single left-to-right wave (stagger 2 ms per tick, 300 ms total, `--ease-out`). Then the broke ticks (the rare, important ones) get a ring, and the headline count settles at "Fixed 90 · Broke 1". Fixed ticks read as red turning green without a ring. The still state is the two strips with the counts, which is also what reduced-motion users see. Clicking a tick opens that scenario's two transcripts side by side.
 
 ## Tokens
 - **Theme:** light leads, dark offered (follows the system setting, with a toggle). Compliance reading happens by day, and long transcripts and legal text read best dark-on-light.
@@ -98,3 +98,4 @@ Swap test: passes. The warm-paper light theme, the teal signal (not orange), the
 
 ## Revisions
 - 2026-11-18: first direction.
+- 2026-11-18: signature rings only broke ticks. Ringing all 91 changed ticks hid the one that mattered (seen in ui-verify screenshots).

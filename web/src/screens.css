@@ -33,8 +33,9 @@ details summary { cursor: pointer; color: var(--signal); min-height: 32px; }
 .strips { display: grid; gap: var(--s4); }
 .strip-row { display: grid; gap: var(--s2); }
 .strip-label { font-size: var(--fs-xs); }
-.strip { display: flex; gap: 2px; }
-.tick { appearance: none; border: 0; padding: 0; height: 28px; flex: 1 1 0; min-width: 1px; border-radius: 2px; cursor: pointer; background: var(--neutral-soft); transition: background-color var(--dur-state) var(--ease-out); }
+/* Wraps onto more rows when a pack has more scenarios than the width fits; A and B wrap alike. */
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(4px, 1fr)); gap: 2px; }
+.tick { appearance: none; border: 0; padding: 0; height: 28px; border-radius: 2px; cursor: pointer; background: var(--neutral-soft); transition: background-color var(--dur-state) var(--ease-out); }
 .tick.pass { background: var(--pass); }
 .tick.fail { background: var(--fail); }
 .tick.unjudged { background: var(--neutral); opacity: 0.45; }
@@ -50,7 +51,8 @@ details summary { cursor: pointer; color: var(--signal); min-height: 32px; }
 .linkish { border: 0; background: none; padding: var(--s1) 0; color: var(--signal); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; min-height: 28px; text-align: left; }
 
 @media (max-width: 600px) {
-  .strip { gap: 1px; }
+  .strip { gap: 1px; grid-template-columns: repeat(auto-fit, minmax(3px, 1fr)); }
+  .tick { height: 22px; }
   .tick.ring { box-shadow: 0 0 0 1px var(--ink); }
 }
 @media (max-width: 900px) {

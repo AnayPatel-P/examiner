@@ -86,7 +86,7 @@ function Strips({ diff, ticks, onPick, picked, waveKey }: {
           {ticks.map((t, i) => {
             const before = phase === 'before'
             const tone = before ? tickTone(t, 'a') : tickTone(t, 'b')
-            const marked = !before && (t.category === 'fixed' || t.category === 'broke')
+            const marked = !before && t.category === 'broke'
             return (
               <button
                 key={`${t.sample_id}-${t.epoch}`}
@@ -105,13 +105,14 @@ function Strips({ diff, ticks, onPick, picked, waveKey }: {
           })}
         </div>
       </div>
-      <p className="small muted strip-key" id="strip-help">
+      <p className="small muted strip-key">
         <span className="tick pass static" aria-hidden="true" /> pass
         <span className="tick fail static" aria-hidden="true" /> fail
         <span className="tick unjudged static" aria-hidden="true" /> not judged
         <span className="tick absent static" aria-hidden="true" /> not in this run
-        <span aria-hidden="true">·</span> ringed ticks changed · arrow keys move, Enter compares
+        <span className="tick fail static ring" aria-hidden="true" /> broke
       </p>
+      <p className="small muted" id="strip-help">Each tick is one scenario. Arrow keys move along run B; Enter compares the two transcripts.</p>
     </div>
   )
 }

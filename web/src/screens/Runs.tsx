@@ -38,7 +38,7 @@ export default function Runs() {
         </Empty>
       )}
       {data && data.length > 0 && (
-        <TableWrap label="All runs">
+        <TableWrap label="Runs table, scrolls sideways">
           <table>
             <caption className="sr-only">All runs, newest first</caption>
             <thead>

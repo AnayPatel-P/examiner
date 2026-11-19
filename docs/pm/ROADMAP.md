@@ -49,18 +49,18 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 ## Phase 4 — Dashboard
 **Goal:** the web app: browse, drill in, label, diff.
 **Demo:** click through a run's scorecard → a failure with its citation → label 10 transcripts → diff naive vs guarded.
-- [ ] 4.0 UI direction: invoke `design:ui-direct` with the PRD handoff brief; Anay picks a direction
-- [ ] 4.1 Vite + React + TS scaffold inside the repo, API client
-- [ ] 4.2 Runs list + scorecard (by area and rubric)
-- [ ] 4.3 Failure drill-down: transcript, judge rationale, failed facts, reg citation
-- [ ] 4.4 Labeling screen (blind to judge, keyboard shortcuts)
-- [ ] 4.5 Calibration report screen
-- [ ] 4.6 Diff screen
-- [ ] 4.7 `design:ui-verify` pass
+- [x] 4.0 UI direction: invoke `design:ui-direct` with the PRD handoff brief; Anay picks a direction
+- [x] 4.1 Vite + React + TS scaffold inside the repo, API client
+- [x] 4.2 Runs list + scorecard (by area and rubric)
+- [x] 4.3 Failure drill-down: transcript, judge rationale, failed facts, reg citation
+- [x] 4.4 Labeling screen (blind to judge, keyboard shortcuts)
+- [x] 4.5 Calibration report screen
+- [x] 4.6 Diff screen
+- [x] 4.7 `design:ui-verify` pass
 **Done when:**
-- [ ] All 5 screens work against real API data
-- [ ] Direction logged in DECISIONS.md and PRD §14 filled in
-- [ ] ui-verify passes (console clean, a11y, no overflow)
+- [x] All 5 screens work against real API data
+- [x] Direction logged in DECISIONS.md and PRD §14 filled in
+- [x] ui-verify passes (console clean, a11y, no overflow)
 
 ## Phase 5 — Calibrate, export, ship
 **Goal:** real numbers and a public demo.

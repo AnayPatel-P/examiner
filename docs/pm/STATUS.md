@@ -1,13 +1,14 @@
 # Status
 
 **Updated:** 2026-11-18
-**Current phase:** C (Build), roadmap Phase 3 done
-**Current milestone:** Phase 3 accepted pending Anay's review
-**Last completed:** Phase 3, guarded bot + API: guarded 90.6% overall vs naive 20.5% (fixed 90, broke 1, D16); read API, blind label queue, per-rubric calibration, run diff (`examiner serve`, `examiner diff`, D17). Review: 0 critical, 4 important fixed.
-**Next up:** Phase 4, dashboard (starts with design:ui-direct)
-**Blockers / open questions:** branches `phase-1`, `phase-2`, `phase-3` are local only, nothing merged to master or pushed
+**Current phase:** C (Build), roadmap Phase 4 done
+**Current milestone:** Phase 4 accepted pending Anay's review
+**Last completed:** Phase 4, dashboard (web/): runs, scorecard, finding drill-down, blind labeling, calibration, diff with the tick-strip signature (DIRECTION.md, D19-D20). ui-verify: 0 blocking (full run 2026-11-19T03-46, then basics/a11y/motion re-run clean). Review: 1 critical + 6 important fixed.
+**Next up:** Anay labels ~100 transcripts in the dashboard (the calibration set), then Phase 5: calibrate, export, ship
+**Blockers / open questions:** branches `phase-1` to `phase-4` are local only, nothing merged to master or pushed
 
 ## History
+- 2026-11-18: Phase 4 built (plan: phase-4-plan.md), direction set with ui-direct, verified with ui-verify, reviewed, fixed.
 - 2026-11-18: Phase 3 built (plan: phase-3-plan.md), reviewed, fixed; live guarded runs (93.7% pre-fix, 90.6% final).
 - 2026-11-18: Phase 2 built (plan: phase-2-plan.md), reviewed, fixed; live runs naive + misinformed.
 - 2026-11-18: Spike labeled (in chat), kappa computed, D12 logged.
