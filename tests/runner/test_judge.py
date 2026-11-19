@@ -55,6 +55,7 @@ def test_judge_score_end_to_end_fail(bot, tmp_path: Path):
     url, _ = bot
     score = run_judged(url, tmp_path, '{"verdict": "fail", "rationale": "invented a date"}')
     assert score.value == "I"
+    assert score.metadata is not None
     assert score.metadata["rationale"] == "invented a date"
     assert score.metadata["judge_version"] == JUDGE_VERSION
     assert score.metadata["citation"] == "Meridian fee schedule: overdraft"
