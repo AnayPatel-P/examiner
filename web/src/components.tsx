@@ -4,24 +4,33 @@ import { pct, verdict } from './format'
 import { ecfrUrl } from './lib/ecfr'
 
 export function useLoad<T>(fn: () => Promise<T>, deps: unknown[]) {
-  const [state, setState] = useState<{ data: T | null; error: ApiError | null; loading: boolean }>({
-    data: null, error: null, loading: true,
-  })
+  // Results are tagged with the inputs that produced them, so a screen never shows the
+  // previous filter's data under the new filter while the new request is in flight.
+  const key = JSON.stringify(deps)
   const [tick, setTick] = useState(0)
+  const [state, setState] = useState<{ key: string; data: T | null; error: ApiError | null }>({
+    key: '', data: null, error: null,
+  })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const run = useCallback(fn, deps)
+  const want = `${key}#${tick}`
   useEffect(() => {
     let live = true
-    setState((s) => ({ ...s, loading: true, error: null }))
     run().then(
-      (data) => live && setState({ data, error: null, loading: false }),
-      (e) => live && setState({ data: null, error: e instanceof ApiError ? e : new ApiError(0, String(e)), loading: false }),
+      (data) => live && setState({ key: want, data, error: null }),
+      (e) => live && setState({ key: want, data: null, error: e instanceof ApiError ? e : new ApiError(0, String(e)) }),
     )
     return () => {
       live = false
     }
-  }, [run, tick])
-  return { ...state, reload: () => setTick((t) => t + 1) }
+  }, [run, want])
+  const current = state.key === want
+  return {
+    data: current ? state.data : null,
+    error: current ? state.error : null,
+    loading: !current,
+    reload: () => setTick((t) => t + 1),
+  }
 }
 
 export function Loading({ label = 'Loading' }: { label?: string }) {

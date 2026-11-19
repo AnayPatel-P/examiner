@@ -1,25 +1,33 @@
 // Labeling state: one save at a time, so fast key presses can't double-save or skip an item.
+// A save confirmation names the label it confirms, so a late answer for an old label can't
+// mark a different one as saved.
+
+import type { Rubric } from '../api'
 
 export interface LabelKey {
   run_id: string
   sample_id: string
   epoch: number
+  rubric: Rubric
 }
+
+export type PendingLabel = LabelKey & { human_pass: boolean }
 
 export interface LabelState<T extends LabelKey = LabelKey> {
   items: T[]
   index: number
   status: 'idle' | 'saving'
-  pending: (LabelKey & { human_pass: boolean }) | null
-  history: (LabelKey & { human_pass: boolean })[]
+  pending: PendingLabel | null
+  history: PendingLabel[]
   error: string | null
 }
 
 export type LabelAction<T extends LabelKey = LabelKey> =
   | { type: 'loaded'; items: T[] }
+  | { type: 'reset' }
   | { type: 'key'; pass: boolean }
-  | { type: 'saved' }
-  | { type: 'failed'; message: string }
+  | { type: 'saved'; key: PendingLabel }
+  | { type: 'failed'; key: PendingLabel; message: string }
   | { type: 'skip' }
   | { type: 'undo' }
 
@@ -31,18 +39,24 @@ export function labelReducer<T extends LabelKey>(state: LabelState<T>, action: L
   switch (action.type) {
     case 'loaded':
       return { ...state, items: action.items, index: 0, status: 'idle', pending: null, error: null }
+    case 'reset':
+      return { ...state, items: [], index: 0, status: 'idle', pending: null, error: null }
     case 'key': {
       const cur = state.items[state.index]
       if (state.status === 'saving' || !cur) return state
-      const { run_id, sample_id, epoch } = cur
-      return { ...state, status: 'saving', error: null, pending: { run_id, sample_id, epoch, human_pass: action.pass } }
+      const { run_id, sample_id, epoch, rubric } = cur
+      return {
+        ...state, status: 'saving', error: null,
+        pending: { run_id, sample_id, epoch, rubric, human_pass: action.pass },
+      }
     }
     case 'saved':
-      if (!state.pending) return state
+      if (!state.pending || action.key !== state.pending) return state
       return {
         ...state, status: 'idle', index: state.index + 1, history: [...state.history, state.pending], pending: null,
       }
     case 'failed':
+      if (!state.pending || action.key !== state.pending) return state
       return { ...state, status: 'idle', pending: null, error: action.message }
     case 'skip':
       if (state.status === 'saving' || state.index >= state.items.length) return state

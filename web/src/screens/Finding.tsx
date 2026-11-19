@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { api, RUBRICS, type ResultDetail } from '../api'
 import { Chip, Citation, ErrorState, Loading, Transcript, useLoad } from '../components'
@@ -15,9 +15,12 @@ export function findingLead(d: ResultDetail): string {
     const parts = []
     if (fd.forbidden?.length) parts.push(`said something it must not (${fd.forbidden.join(', ')})`)
     if (fd.missing?.length) parts.push(`left out a required fact (${fd.missing.join(', ')})`)
-    if (parts.length) return `The fact check failed: the reply ${parts.join(' and ')}. The judge passed it.`
+    const judged = d.scores.length > 0 && d.scores.every((s) => s.passed === 1)
+    const judge = judged ? ' Every judge rubric passed it.' : d.scores.some((s) => s.passed === null) ? ' The judge did not score every rubric.' : ''
+    if (parts.length) return `The fact check failed: the reply ${parts.join(' and ')}.${judge}`
   }
   if (d.overall === 1) return 'Passed: the reply stated the required facts and broke no cited rule.'
+  if (d.overall === 0) return 'Failed: see the verdicts below for which check failed.'
   return 'Not fully judged: one or more checks have no verdict.'
 }
 
@@ -55,6 +58,13 @@ export default function Finding() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const loadedId = detail.data ? `${detail.data.sample_id}/${detail.data.epoch}` : null
+  // After J/K or Prev/Next the focused link unmounts; put focus on the new finding's title.
+  useEffect(() => {
+    if (loadedId) titleRef.current?.focus()
+  }, [loadedId])
+
   if (detail.loading) return <Loading label="Loading scenario" />
   if (detail.error) return <ErrorState error={detail.error} onRetry={detail.reload} />
   const d = detail.data
@@ -69,7 +79,7 @@ export default function Finding() {
           <Link to={`/runs/${runId}?${from}`} className="id">{runId}</Link><span aria-hidden="true">/</span>
           <span className="id">{d.sample_id}</span>
         </div>
-        <h1 className="finding-title">
+        <h1 className="finding-title" tabIndex={-1} ref={titleRef}>
           <span className="id">{d.sample_id}</span> <Chip v={d.overall} error={d.error} label="Overall" />
         </h1>
         <p className="finding-lead">{findingLead(d)}</p>

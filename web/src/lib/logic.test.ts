@@ -3,7 +3,7 @@ import type { Diff } from '../api'
 import { ecfrUrl } from './ecfr'
 import { kappaWord } from './kappa'
 import { initialLabelState, labelReducer } from './labelReducer'
-import { stripModel } from './strip'
+import { stripModel, tickTone } from './strip'
 
 describe('ecfrUrl', () => {
   it('links a Reg E paragraph to its eCFR anchor', () => {
@@ -29,7 +29,7 @@ describe('kappaWord', () => {
   })
 })
 
-const item = (id: string) => ({ run_id: 'r', sample_id: id, epoch: 1 })
+const item = (id: string) => ({ run_id: 'r', sample_id: id, epoch: 1, rubric: 'factual' as const })
 
 describe('labelReducer', () => {
   const loaded = labelReducer(initialLabelState, { type: 'loaded', items: [item('a'), item('b')] })
@@ -43,17 +43,37 @@ describe('labelReducer', () => {
   })
   it('advances after a save and counts it', () => {
     const saving = labelReducer(loaded, { type: 'key', pass: false })
-    const done = labelReducer(saving, { type: 'saved' })
+    const done = labelReducer(saving, { type: 'saved', key: saving.pending! })
     expect(done.index).toBe(1)
     expect(done.status).toBe('idle')
     expect(done.history).toEqual([{ ...item('a'), human_pass: false }])
   })
   it('keeps the item when a save fails', () => {
     const saving = labelReducer(loaded, { type: 'key', pass: true })
-    const failed = labelReducer(saving, { type: 'failed', message: 'down' })
+    const failed = labelReducer(saving, { type: 'failed', key: saving.pending!, message: 'down' })
     expect(failed.index).toBe(0)
     expect(failed.status).toBe('idle')
     expect(failed.error).toBe('down')
+  })
+  it('takes the rubric from the item, not from the page', () => {
+    const disc = labelReducer(initialLabelState, {
+      type: 'loaded', items: [{ ...item('a'), rubric: 'disclosure' as const }],
+    })
+    expect(labelReducer(disc, { type: 'key', pass: true }).pending?.rubric).toBe('disclosure')
+  })
+  it('ignores a save confirmation for a label that is no longer pending', () => {
+    const savingA = labelReducer(loaded, { type: 'key', pass: true })
+    const stale = savingA.pending!
+    // queue reloads mid-save, then the user labels the new first item
+    const reloaded = labelReducer(savingA, { type: 'loaded', items: [item('x'), item('y')] })
+    const savingX = labelReducer(reloaded, { type: 'key', pass: false })
+    expect(labelReducer(savingX, { type: 'saved', key: stale })).toBe(savingX)
+    expect(labelReducer(savingX, { type: 'failed', key: stale, message: 'old' })).toBe(savingX)
+  })
+  it('reset clears the queue so nothing stale can be labeled', () => {
+    const r = labelReducer(loaded, { type: 'reset' })
+    expect(r.items).toEqual([])
+    expect(labelReducer(r, { type: 'key', pass: true }).pending).toBeNull()
   })
   it('skip advances without a save', () => {
     const s = labelReducer(loaded, { type: 'skip' })
@@ -61,7 +81,8 @@ describe('labelReducer', () => {
     expect(s.history).toEqual([])
   })
   it('undo steps back to the last labeled item', () => {
-    const done = labelReducer(labelReducer(loaded, { type: 'key', pass: true }), { type: 'saved' })
+    const saving = labelReducer(loaded, { type: 'key', pass: true })
+    const done = labelReducer(saving, { type: 'saved', key: saving.pending! })
     const back = labelReducer(done, { type: 'undo' })
     expect(back.index).toBe(0)
     expect(back.history).toEqual([])
@@ -88,5 +109,16 @@ describe('stripModel', () => {
   it('keeps category and both verdicts', () => {
     const e = stripModel(diff).find((t) => t.sample_id === 'e')!
     expect(e).toMatchObject({ category: 'only_a', a: 0, b: null })
+  })
+})
+
+describe('tickTone', () => {
+  it('tells a scenario missing from a run apart from one the judge did not score', () => {
+    const base = { sample_id: 's', epoch: 1 }
+    expect(tickTone({ ...base, a: 0, b: null, category: 'only_a' }, 'b')).toBe('absent')
+    expect(tickTone({ ...base, a: null, b: 1, category: 'only_b' }, 'a')).toBe('absent')
+    expect(tickTone({ ...base, a: null, b: 1, category: 'unscored' }, 'a')).toBe('unjudged')
+    expect(tickTone({ ...base, a: 0, b: 1, category: 'fixed' }, 'b')).toBe('pass')
+    expect(tickTone({ ...base, a: 0, b: 1, category: 'fixed' }, 'a')).toBe('fail')
   })
 })

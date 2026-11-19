@@ -34,6 +34,10 @@ describe('api', () => {
     expect(init.method).toBe('POST')
     expect(JSON.parse(init.body)).toMatchObject({ human_pass: true })
   })
+  it('treats a bodiless proxy 500 as the API being down', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })))
+    await expect(api.runs()).rejects.toMatchObject({ status: 0 })
+  })
   it('turns a network failure into a stated ApiError', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
     await expect(api.runs()).rejects.toMatchObject({ status: 0 })

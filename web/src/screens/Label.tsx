@@ -1,5 +1,5 @@
 // Blind labeling: this screen only talks to /label-queue and /labels, never to judge output.
-import { useEffect, useReducer, useRef } from 'react'
+import { useEffect, useReducer } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { api, RUBRICS, type QueueItem, type Rubric } from '../api'
 import { Citation, Empty, ErrorState, Loading, Transcript, useLoad } from '../components'
@@ -17,23 +17,24 @@ export default function Label() {
     labelReducer<QueueItem>,
     initialLabelState as LabelState<QueueItem>,
   )
-  const pending = useRef(false)
+  // Clear the queue the moment the filters change, so nothing from the old rubric can be labeled.
+  useEffect(() => {
+    dispatch({ type: 'reset' })
+  }, [rubric, run])
 
   useEffect(() => {
     if (queue.data) dispatch({ type: 'loaded', items: queue.data })
   }, [queue.data])
 
-  // Save whenever the reducer has a pending label.
+  // Post each pending label exactly once; the confirmation names the label it confirms.
   useEffect(() => {
-    if (!state.pending || pending.current) return
-    pending.current = true
-    api
-      .postLabel({ ...state.pending, rubric })
-      .then(() => dispatch({ type: 'saved' }), (e) => dispatch({ type: 'failed', message: e.detail ?? String(e) }))
-      .finally(() => {
-        pending.current = false
-      })
-  }, [state.pending, rubric])
+    const p = state.pending
+    if (!p) return
+    api.postLabel(p).then(
+      () => dispatch({ type: 'saved', key: p }),
+      (e) => dispatch({ type: 'failed', key: p, message: e?.detail ?? String(e) }),
+    )
+  }, [state.pending])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -51,6 +52,14 @@ export default function Label() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const ready = !!queue.data && !queue.loading && !queue.error
+  // The queue is fetched in pages of 200; fetch the next page when this one runs out.
+  const exhausted = ready && state.items.length === 200 && state.index >= state.items.length
+  useEffect(() => {
+    if (exhausted) queue.reload()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exhausted])
+
   const set = (k: string, v: string) => {
     const p = new URLSearchParams(params)
     if (v) p.set(k, v)
@@ -58,7 +67,7 @@ export default function Label() {
     setParams(p, { replace: true })
   }
 
-  const item = state.items[state.index]
+  const item = ready ? state.items[state.index] : undefined
   const saving = state.status === 'saving'
 
   return (
@@ -83,7 +92,7 @@ export default function Label() {
           <select value={run} onChange={(e) => set('run', e.target.value)}>
             <option value="">All runs (mixed)</option>
             {runs.data?.map((r) => (
-              <option key={r.id} value={r.id}>{r.variant} · {r.pack} · {r.id.slice(0, 8)}</option>
+              <option key={r.id} value={r.id}>Run {r.id.slice(0, 8)} · {r.pack} pack</option>
             ))}
           </select>
         </label>
@@ -95,7 +104,7 @@ export default function Label() {
 
       {queue.loading && <Loading label="Loading the labeling queue" />}
       {queue.error && <ErrorState error={queue.error} onRetry={queue.reload} />}
-      {queue.data && !item && (
+      {ready && !item && (
         <Empty>
           <p>Nothing left to label for {RUBRIC_LABEL[rubric]}{run ? ' in this run' : ''}.</p>
           <p className="small"><Link to="/calibration">See how the judge agrees with your labels</Link></p>
@@ -111,13 +120,13 @@ export default function Label() {
             </div>
             <Transcript text={item.transcript} />
             <div className="label-actions" role="group" aria-label="Your verdict">
-              <button className="btn btn-primary" disabled={saving} onClick={() => dispatch({ type: 'key', pass: true })}>
+              <button className="btn btn-primary" aria-disabled={saving} onClick={() => !saving && dispatch({ type: 'key', pass: true })}>
                 Pass <kbd>Y</kbd>
               </button>
-              <button className="btn btn-fail" disabled={saving} onClick={() => dispatch({ type: 'key', pass: false })}>
+              <button className="btn btn-fail" aria-disabled={saving} onClick={() => !saving && dispatch({ type: 'key', pass: false })}>
                 Fail <kbd>N</kbd>
               </button>
-              <button className="btn" disabled={saving} onClick={() => dispatch({ type: 'skip' })}>
+              <button className="btn" aria-disabled={saving} onClick={() => !saving && dispatch({ type: 'skip' })}>
                 Skip <kbd>S</kbd>
               </button>
               <button className="btn btn-quiet" disabled={saving || state.history.length === 0} onClick={() => dispatch({ type: 'undo' })}>
@@ -130,10 +139,10 @@ export default function Label() {
 
           <div className="finding-side">
             <section className="panel section" aria-labelledby="rub-h">
-              <h2 id="rub-h">Rubric: {RUBRIC_LABEL[rubric]}</h2>
+              <h2 id="rub-h">Rubric: {RUBRIC_LABEL[item.rubric]}</h2>
               <div className="rubric-text">{item.rubric_text.replace(/^## Rubric: [^\n]*\n/, '')}</div>
             </section>
-            {item.key_facts.length > 0 && rubric === 'disclosure' && (
+            {item.key_facts.length > 0 && item.rubric === 'disclosure' && (
               <section className="panel section" aria-labelledby="kf-h">
                 <h2 id="kf-h">Key facts the reply must state</h2>
                 <ul className="small">

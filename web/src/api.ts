@@ -158,6 +158,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(0, 'Cannot reach the Examiner API. Start it with `uv run examiner serve`.')
   }
   const body = await res.json().catch(() => null)
+  // Behind the Vite proxy a stopped API shows up as a bodiless 5xx, not a network error.
+  if (res.status >= 502 || (res.status === 500 && body === null)) {
+    throw new ApiError(0, 'Cannot reach the Examiner API. Start it with `uv run examiner serve`.')
+  }
+  if (res.ok && body === null) throw new ApiError(res.status, 'The API returned an empty or non-JSON response.')
   if (!res.ok) {
     const detail = typeof body?.detail === 'string' ? body.detail : `Request failed (${res.status})`
     throw new ApiError(res.status, detail)

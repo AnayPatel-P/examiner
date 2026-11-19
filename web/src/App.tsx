@@ -73,7 +73,7 @@ export default function App() {
       <div className="banner">
         <p>Not legal advice. Meridian Bank is fictional; scenarios test public Reg E rules and a made-up fee schedule.</p>
       </div>
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Runs />} />
           <Route path="/runs/:runId" element={<RunPage />} />
