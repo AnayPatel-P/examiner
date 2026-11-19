@@ -15,10 +15,10 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 - [x] 1.5 Inspect task + custom HTTP solver (multi-turn) + deterministic fact scorer
 - [x] 1.6 Sonnet judge scorer, one rubric (factual accuracy)
 - [x] 1.7 Index results into SQLite
-- [ ] 1.8 Spike: label 20 transcripts by hand, compute kappa, write findings in DECISIONS.md (tooling done: `examiner label-export` / `examiner kappa`; needs a live run + Anay's labels)
+- [x] 1.8 Spike: label 20 transcripts by hand, compute kappa, write findings in DECISIONS.md (see spike-judge.md, D12)
 **Done when:**
-- [ ] One command runs the 5 smoke scenarios and stores results
-- [ ] Spike result logged: judge agreement number + go/no-go on the judge approach
+- [x] One command runs the 5 smoke scenarios and stores results
+- [x] Spike result logged: judge agreement number + go/no-go on the judge approach
 
 ## Phase 2 — Scenario pack v1
 **Goal:** the real content: ~120 scenarios with ground truth and citations.
@@ -28,6 +28,7 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 - [ ] 2.3 Variant generator (paraphrase + persona), stable ids, dedupe
 - [ ] 2.4 Schema tests + citation lint (every scenario has a valid citation and source note)
 - [ ] 2.5 Full rubric set: factual accuracy, required disclosure, no invented commitments
+- [ ] 2.7 Seeded-error transcripts for calibration (both classes; spike D12)
 - [ ] 2.6 Budget cap, concurrency, retries, prompt caching; cost tracked per run
 **Done when:**
 - [ ] `--pack v1` runs ~120 scenarios in < 10 min for ≤ $5

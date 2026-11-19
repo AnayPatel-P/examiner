@@ -13,3 +13,4 @@
 | D9 | 2026-11-18 | Defaults: no auth, must_say/must_not_say facts, seed+variant generation, Haiku target + Sonnet judge + caching + budget cap, "not legal advice" banner | Keeps v1 to 2-3 weeks and runs to ≤ $5 | — |
 | D10 | 2026-11-18 | Stack: Python 3.12 (uv) + FastAPI + Inspect + SQLite; React + Vite + TS dashboard; static export to GitHub Pages | Python for eval work (his strength); a light SPA is enough for a single-user local tool | Next.js UI; Streamlit |
 | D11 | 2026-11-18 | Public material only; no Wio data | Wio material stays off the personal Mac | — |
+| D12 | 2026-11-18 | Spike 1.8: go on the LLM judge. 20 blind labels: raw agreement 0.80, kappa 0.00 (degenerate: all human labels were pass). Judge caught a real Reg E error the human missed | Judge reasoning was sound on all 4 disagreements; the weak points were the labeling guide (paraphrased rubric) and a one-class sample | Fall back to deterministic checks only |
