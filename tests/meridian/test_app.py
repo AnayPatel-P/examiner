@@ -23,7 +23,7 @@ def test_chat_returns_reply():
         "/chat", json={"variant": "naive", "messages": [{"role": "user", "content": "hi"}]}
     )
     assert r.status_code == 200
-    assert r.json() == {"reply": "Hello from Meridian.", "variant": "naive"}
+    assert r.json() == {"reply": "Hello from Meridian.", "variant": "naive", "usage": None}
 
 
 def test_chat_passes_history_in_order():

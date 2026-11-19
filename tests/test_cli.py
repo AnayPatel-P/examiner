@@ -89,6 +89,6 @@ def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monke
     assert "n=5" in res.output and "kappa" in res.output
 
 
-def test_cost_cap_option_is_per_sample():
+def test_run_cost_cap_option():
     result = CliRunner().invoke(app, ["run", "--help"])
-    assert "--max-cost-per-sample" in result.output
+    assert "--max-run-cost" in result.output

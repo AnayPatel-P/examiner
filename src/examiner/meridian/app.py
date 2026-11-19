@@ -9,7 +9,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from examiner.meridian.bank import DATA_DIR
 
-Responder = Callable[[str, list[dict]], Awaitable[str]]
+# A responder returns the reply text, or (text, {"input_tokens", "output_tokens"}).
+Responder = Callable[[str, list[dict]], Awaitable[str | tuple[str, dict]]]
 
 TARGET_MODEL = "claude-haiku-5-5"
 
@@ -46,6 +47,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     variant: str
+    usage: dict | None = None
 
 
 def anthropic_responder() -> Responder:
@@ -53,14 +55,16 @@ def anthropic_responder() -> Responder:
 
     client = AsyncAnthropic()
 
-    async def respond(system: str, messages: list[dict]) -> str:
+    async def respond(system: str, messages: list[dict]) -> tuple[str, dict]:
         msg = await client.messages.create(
             model=TARGET_MODEL,
             max_tokens=600,
             system=system,
             messages=messages,  # type: ignore[arg-type]
         )
-        return "".join(b.text for b in msg.content if b.type == "text")
+        text = "".join(b.text for b in msg.content if b.type == "text")
+        usage = {"input_tokens": msg.usage.input_tokens, "output_tokens": msg.usage.output_tokens}
+        return text, usage
 
     return respond
 
@@ -81,8 +85,9 @@ def create_app(responder: Responder | None = None) -> FastAPI:
     @app.post("/chat")
     async def chat(req: ChatRequest) -> ChatResponse:
         messages = [m.model_dump() for m in req.messages]
-        reply = await get_responder()(SYSTEM_PROMPTS[req.variant], messages)
-        return ChatResponse(reply=reply, variant=req.variant)
+        result = await get_responder()(SYSTEM_PROMPTS[req.variant], messages)
+        reply, usage = result if isinstance(result, tuple) else (result, None)
+        return ChatResponse(reply=reply, variant=req.variant, usage=usage)
 
     return app
 

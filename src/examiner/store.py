@@ -39,6 +39,18 @@ CREATE TABLE IF NOT EXISTS score (
 """
 
 TARGET_MODEL = "anthropic/claude-haiku-5-5"
+# Haiku 5.5 list price, USD per million tokens (input, output).
+TARGET_PRICE = (0.10, 0.50)
+
+# Columns added after the first schema; added to old databases on open.
+MIGRATIONS = {
+    "run": {"target_cost_usd": "REAL", "wall_seconds": "REAL"},
+    "result": {"target_cost_usd": "REAL"},
+}
+
+
+def target_cost(input_tokens: int, output_tokens: int) -> float:
+    return (input_tokens * TARGET_PRICE[0] + output_tokens * TARGET_PRICE[1]) / 1_000_000
 
 
 def _passed(value: object) -> int | None:
@@ -51,6 +63,11 @@ class Store:
         self.db = sqlite3.connect(self.path)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
+        for table, cols in MIGRATIONS.items():
+            have = {r["name"] for r in self.db.execute(f"PRAGMA table_info({table})")}
+            for col, typ in cols.items():
+                if col not in have:
+                    self.db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
 
     def index_log(self, log: EvalLog, target: str, variant: str) -> str:
         spec = log.eval
@@ -86,6 +103,8 @@ class Store:
                 verdicts.append(passed)
                 notes.append(f"[{rubric}] {rationale}")
                 score_rows.append((run_id, str(s.id), s.epoch, rubric, passed, rationale, version))
+            tu = s.metadata.get("target_usage")
+            tcost = target_cost(tu["input_tokens"], tu["output_tokens"]) if tu else None
             if not verdicts or any(v is None for v in verdicts):
                 judge_pass = None
             else:
@@ -102,12 +121,25 @@ class Store:
                     "\n".join(notes) or None,
                     citation,
                     s.error.message if s.error else None,
+                    tcost,
                 )
             )
         judge_version = ",".join(sorted(versions)) or None
+        tcosts = [r[-1] for r in rows if r[-1] is not None]
+        run_target_cost = sum(tcosts) if tcosts else None
+        wall = None
+        if log.stats.started_at and log.stats.completed_at:
+            from datetime import datetime
+
+            wall = (
+                datetime.fromisoformat(log.stats.completed_at)
+                - datetime.fromisoformat(log.stats.started_at)
+            ).total_seconds()
         with self.db:
             self.db.execute(
-                "INSERT OR REPLACE INTO run VALUES (?,?,?,?,?,?,?,?,?,?)",
+                "INSERT OR REPLACE INTO run (id, target, variant, pack, judge_version, "
+                "model_target, model_judge, started_at, cost_usd, log_path, target_cost_usd, "
+                "wall_seconds) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     run_id,
                     target,
@@ -119,9 +151,16 @@ class Store:
                     spec.created,
                     cost,
                     log.location,
+                    run_target_cost,
+                    wall,
                 ),
             )
-            self.db.executemany("INSERT OR REPLACE INTO result VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
+            self.db.executemany(
+                "INSERT OR REPLACE INTO result (run_id, sample_id, epoch, transcript, fact_pass, "
+                "fact_detail, judge_pass, judge_rationale, citation, error, target_cost_usd) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                rows,
+            )
             self.db.executemany("INSERT OR REPLACE INTO score VALUES (?,?,?,?,?,?,?)", score_rows)
         return run_id
 

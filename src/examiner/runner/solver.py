@@ -18,6 +18,7 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
         turns: list[str] = state.metadata["scenario"]["turns"]
         state.messages = []
         reply = ""
+        usage: dict[str, int] | None = {"input_tokens": 0, "output_tokens": 0}
         async with httpx.AsyncClient(timeout=timeout) as client:
             for turn in turns:
                 state.messages.append(ChatMessageUser(content=turn))
@@ -32,10 +33,18 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
                         json={"variant": variant, "messages": history},
                     )
                     resp.raise_for_status()
-                    reply = resp.json()["reply"]
+                    body = resp.json()
+                    reply = body["reply"]
+                    turn_usage = body.get("usage")
                 except (httpx.HTTPError, KeyError, ValueError) as e:
                     raise RuntimeError(f"target error: {type(e).__name__}: {e}") from e
+                if usage is not None and isinstance(turn_usage, dict):
+                    for k in usage:
+                        usage[k] += int(turn_usage.get(k, 0))
+                else:
+                    usage = None
                 state.messages.append(ChatMessageAssistant(content=reply))
+        state.metadata["target_usage"] = usage
         state.output = ModelOutput.from_content(f"meridian/{variant}", reply)
         return state
 

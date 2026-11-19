@@ -22,9 +22,12 @@ class BotServer:
     def __init__(self) -> None:
         self.calls: list[list[dict]] = []
         self.reply: Callable[[list[dict]], str] = lambda msgs: "Our overdraft fee is $34."
+        self.usage: dict | None = None
 
-    async def responder(self, system: str, messages: list[dict]) -> str:
+    async def responder(self, system: str, messages: list[dict]):
         self.calls.append(messages)
+        if self.usage is not None:
+            return self.reply(messages), self.usage
         return self.reply(messages)
 
 

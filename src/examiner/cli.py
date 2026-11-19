@@ -43,27 +43,65 @@ def main() -> None:
     load_dotenv()
 
 
+def per_sample_cap(max_run_cost: float, n_samples: int, epochs: int) -> float:
+    """Inspect's cost_limit is per sample; split the run budget evenly so judge spend <= cap."""
+    return max_run_cost / max(1, n_samples * epochs)
+
+
+CHECKS = ["fact", "factual", "disclosure", "commitments"]
+
+
+def summarize(results, scores, areas: dict[str, str]) -> dict[str, dict]:
+    """Pass counts by area: {area: {check: (passed, judged), "errors": n}}."""
+    table: dict[str, dict] = {}
+    for area in sorted(set(areas.values())):
+        table[area] = {c: (0, 0) for c in CHECKS} | {"errors": 0}
+
+    def add(area: str, check: str, value) -> None:
+        if value is None:
+            return
+        p, n = table[area][check]
+        table[area][check] = (p + int(value), n + 1)
+
+    for r in results:
+        area = areas[r["sample_id"]]
+        if r["error"]:
+            table[area]["errors"] += 1
+            continue
+        add(area, "fact", r["fact_pass"])
+    for s in scores:
+        add(areas[s["sample_id"]], s["rubric"], s["passed"])
+    return table
+
+
+def _pct(pair: tuple[int, int]) -> str:
+    p, n = pair
+    return f"{p}/{n} ({100 * p / n:.0f}%)" if n else "-"
+
+
 @app.command()
 def run(
     target: str = typer.Option("http://localhost:8001", help="Base URL of the chat target."),
     pack: str = typer.Option("smoke", help="Scenario pack under packs/."),
     variant: str = typer.Option("naive", help="Target variant to request."),
     epochs: int = typer.Option(1, min=1),
-    max_cost_per_sample: float = typer.Option(
-        0.25,
-        help="Per-sample judge spend cap in USD (Inspect cost_limit is per sample). "
-        "A run-level cap comes in roadmap 2.6.",
+    max_run_cost: float = typer.Option(
+        5.0, help="Judge spend cap for the whole run, USD (split evenly per sample)."
     ),
     judge_model: str = typer.Option(JUDGE_MODEL),
     db: Path = typer.Option(Path("examiner.db")),
+    show_all: bool = typer.Option(False, "--all", help="Print every scenario row."),
 ) -> None:
     """Run a scenario pack against a chat target and store the results."""
+    from examiner.scenarios.schema import load_pack
+
     try:
+        scenarios = load_pack(pack)
         task = examiner_task(pack=pack, target=target, variant=variant)
     except ValueError as e:
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from e
-    budget = cost_options(judge_model, max_cost_per_sample)
+    budget = cost_options(judge_model, per_sample_cap(max_run_cost, len(scenarios), epochs))
     # The solver never calls the task model; using the judge here keeps every model priced.
     [log] = inspect_eval(
         task,
@@ -73,27 +111,42 @@ def run(
         **budget,
         log_dir="logs",
         fail_on_error=False,
+        retry_on_error=2,
         max_samples=8,
         display="none",
     )
     store = Store(db)
     run_id = store.index_log(log, target=target, variant=variant)
     rows = store.results(run_id)
-    width = max(len(r["sample_id"]) for r in rows) if rows else 10
-    typer.echo(f"{'scenario':<{width}}  ep  fact  judge  citation")
-    for r in rows:
-        status = f"ERROR {r['error'][:60]}" if r["error"] else r["citation"]
-        typer.echo(
-            f"{r['sample_id']:<{width}}  {r['epoch']:>2}  {_mark(r['fact_pass']):<4}  "
-            f"{_mark(r['judge_pass']):<5}  {status}"
-        )
+    if show_all or len(rows) <= 30:
+        width = max(len(r["sample_id"]) for r in rows) if rows else 10
+        typer.echo(f"{'scenario':<{width}}  ep  fact  judge  citation")
+        for r in rows:
+            status = f"ERROR {r['error'][:60]}" if r["error"] else r["citation"]
+            typer.echo(
+                f"{r['sample_id']:<{width}}  {r['epoch']:>2}  {_mark(r['fact_pass']):<4}  "
+                f"{_mark(r['judge_pass']):<5}  {status}"
+            )
+    areas = {s.id: s.area for s in scenarios}
+    table = summarize(rows, store.scores(run_id), areas)
+    typer.echo(f"\n{'area':<7} {'errors':>6}  " + "  ".join(f"{c:<14}" for c in CHECKS))
+    for area, t in table.items():
+        typer.echo(f"{area:<7} {t['errors']:>6}  " + "  ".join(f"{_pct(t[c]):<14}" for c in CHECKS))
     n = len(rows)
     fact = sum(r["fact_pass"] or 0 for r in rows)
     judge = sum(r["judge_pass"] or 0 for r in rows)
     run_row = store.run(run_id)
-    cost = run_row["cost_usd"] if run_row else None
-    cost_s = f"${cost:.4f} (judge only)" if cost is not None else "n/a"
-    typer.echo(f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · cost {cost_s}")
+    jc = run_row["cost_usd"] if run_row else None
+    tc = run_row["target_cost_usd"] if run_row else None
+    wall = run_row["wall_seconds"] if run_row else None
+    money = lambda v: f"${v:.4f}" if v is not None else "n/a"  # noqa: E731
+    typer.echo(
+        f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · judge cost {money(jc)} · "
+        f"target cost {money(tc)} · wall {wall:.0f}s"
+        if wall is not None
+        else f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · judge cost {money(jc)} · "
+        f"target cost {money(tc)}"
+    )
 
 
 LABEL_FIELDS = ["sample_id", "epoch", "citation", "source_note", "transcript", "human_pass"]
