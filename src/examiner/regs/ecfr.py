@@ -12,19 +12,22 @@ SNAPSHOT = Path(__file__).parent / "reg_e.json"
 ECFR_URL = "https://www.ecfr.gov/api/versioner/v1/full/{date}/title-12.xml?part=1005"
 
 _TOKEN = r"[a-z]+|\d+|[A-Z]+"
-_ONE = re.compile(rf"^\(({_TOKEN})\)\s*(.*)$", re.S)
-# "(c) Heading—(1) text": a short heading, an em dash, then a second marker.
-_TWO = re.compile(rf"^\(({_TOKEN})\)\s*([^()]{{0,150}}?)\s*—\s*\(({_TOKEN})\)\s*(.*)$", re.S)
-# "(5) Heading. (i) text": a short heading ending in a period, then a second marker.
-_TWO_DOT = re.compile(rf"^\(({_TOKEN})\)\s*([^().]{{1,80}})\.\s+\(({_TOKEN})\)\s*(.*)$", re.S)
+_MARK = re.compile(rf"\(({_TOKEN})\)")
+_NEXT = rf"(?=\((?:{_TOKEN})\))"
+# "Heading—(1)" and "Heading. (i)": a short heading, then the next marker.
+_DASH_HEADING = re.compile(rf"\s*([^()]{{0,200}}?)\s*—\s*{_NEXT}")
+_DOT_HEADING = re.compile(rf"\s*([^().]{{1,200}})\.\s+{_NEXT}")
 _ROMAN = re.compile(r"^(x{0,3})(ix|iv|v?i{0,3})$")
+LEVELS = 6  # a, 1, i, A, italic 1, italic i
 
 
 def _is_roman(tok: str) -> bool:
     return bool(tok) and bool(_ROMAN.match(tok))
 
 
-def _level(tok: str, stack: list[str | None], next_tok: str | None) -> int:
+def _level(tok: str, stack: list[str | None], next_tok: str | None, italic: bool) -> int:
+    if italic:
+        return 5 if tok.isdigit() else 6
     if tok.isdigit():
         return 2
     if tok.isupper():
@@ -49,42 +52,74 @@ def _level(tok: str, stack: list[str | None], next_tok: str | None) -> int:
 
 
 def _markers(text: str) -> list[tuple[str, str]]:
-    """Leading (token, own_text) pairs: one or two."""
-    m = _TWO.match(text) or _TWO_DOT.match(text)
-    if m:
-        return [(m.group(1), m.group(2).strip()), (m.group(3), m.group(4).strip())]
-    m = _ONE.match(text)
-    return [(m.group(1), m.group(2).strip())] if m else []
+    """Leading (token, own_text) pairs, e.g. "(a)(1) x", "(c) H—(1) H—(i) x"."""
+    out: list[tuple[str, str]] = []
+    rest = text
+    while True:
+        m = _MARK.match(rest)
+        if not m:
+            break
+        tok, rest = m.group(1), rest[m.end():]
+        if _MARK.match(rest):  # adjacent: "(a)(1)"
+            out.append((tok, ""))
+            continue
+        h = _DASH_HEADING.match(rest) or _DOT_HEADING.match(rest)
+        if h:
+            out.append((tok, h.group(1).strip()))
+            rest = rest[h.end():]
+            continue
+        out.append((tok, rest.strip()))
+        return out
+    return out
 
 
-def parse_part(xml: bytes) -> dict[str, str]:
+def _italic_flags(p: ET.Element, marks: list[tuple[str, str]]) -> list[bool]:
+    """eCFR writes level-5/6 markers as "(<I>1</I>)"; find which leading markers are italic."""
+    raw = ET.tostring(p, encoding="unicode")
+    flags, cursor = [], 0
+    for tok, _ in marks:
+        plain = raw.find(f"({tok})", cursor)
+        ital = raw.find(f"(<I>{tok}</I>)", cursor)
+        is_ital = ital != -1 and (plain == -1 or ital < plain)
+        pos = ital if is_ital else plain
+        flags.append(is_ital)
+        cursor = pos + 1 if pos != -1 else cursor
+    return flags
+
+
+def parse_part(xml: bytes, strict: bool = False) -> dict[str, str]:
     root = ET.fromstring(xml)
     out: dict[str, str] = {}
+    dupes: list[str] = []
     for sec in root.iter():
         if sec.get("TYPE") != "SECTION":
             continue
         sid = sec.get("N") or ""
-        texts = [" ".join("".join(p.itertext()).split()) for p in sec if p.tag == "P"]
+        ps = [p for p in sec if p.tag == "P"]
+        texts = [" ".join("".join(p.itertext()).split()) for p in ps]
         firsts = [(_markers(t) or [(None, "")])[0][0] for t in texts]
-        stack: list[str | None] = [None, None, None, None]
+        stack: list[str | None] = [None] * LEVELS
         current = sid
         for idx, text in enumerate(texts):
             marks = _markers(text)
             if not marks:
                 out[current] = (out.get(current, "") + " " + text).strip()
                 continue
+            italic = _italic_flags(ps[idx], marks)
             for j, (tok, own) in enumerate(marks):
-                nxt = (
-                    marks[j + 1][0]
-                    if j + 1 < len(marks)
-                    else (firsts[idx + 1] if idx + 1 < len(firsts) else None)
+                nxt = marks[j + 1][0] if j + 1 < len(marks) else (
+                    firsts[idx + 1] if idx + 1 < len(firsts) else None
                 )
-                lvl = _level(tok, stack, nxt)
+                lvl = _level(tok, stack, nxt, italic[j])
                 stack[lvl - 1] = tok
-                for k in range(lvl, 4):
+                for k in range(lvl, LEVELS):
                     stack[k] = None
                 current = sid + "".join(f"({t})" for t in stack if t)
+                if current in out:
+                    dupes.append(current)
                 out[current] = own
+    if strict and dupes:
+        raise ValueError(f"duplicate paragraph ids: {', '.join(sorted(set(dupes))[:20])}")
     return out
 
 
@@ -101,7 +136,7 @@ def fetch_part(date: str) -> bytes:
 
 
 def write_snapshot(date: str, path: Path = SNAPSHOT) -> int:
-    paras = parse_part(fetch_part(date))
+    paras = parse_part(fetch_part(date), strict=True)
     path.write_text(
         json.dumps(
             {"source": ECFR_URL.format(date=date), "date": date, "paragraphs": paras},
