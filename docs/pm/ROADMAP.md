@@ -43,7 +43,7 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 - [x] 3.4 Run-vs-run diff endpoint
 - [x] 3.5 Tests for aggregates, kappa and diff logic (TDD)
 **Done when:**
-- [x] Guarded beats naive on overall pass rate (target ≥ 20 pts) or the reason is documented (20.5% → 93.7%, D16)
+- [x] Guarded beats naive on overall pass rate (target ≥ 20 pts) or the reason is documented (20.5% → 90.6%, D16)
 - [x] All endpoints covered by tests
 
 ## Phase 4 — Dashboard
