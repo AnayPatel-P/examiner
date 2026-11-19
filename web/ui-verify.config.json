@@ -1,0 +1,34 @@
+{
+  "url": "http://localhost:5173",
+  "start": "npm run dev",
+  "routes": [
+    "/",
+    "/runs/F29XAP2r2UyorWG8PrdHLM",
+    "/runs/F29XAP2r2UyorWG8PrdHLM/results/rege-013?epoch=1",
+    "/label",
+    "/calibration",
+    "/diff"
+  ],
+  "widths": [
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "themeToggle": {
+    "attribute": "data-theme",
+    "values": {
+      "light": "light",
+      "dark": "dark"
+    }
+  },
+  "api": {
+    "patterns": [
+      "**/api/runs",
+      "**/api/runs/**",
+      "**/api/label-queue*",
+      "**/api/calibration",
+      "**/api/diff*"
+    ]
+  }
+}

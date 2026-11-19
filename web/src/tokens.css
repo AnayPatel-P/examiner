@@ -1,0 +1,70 @@
+/* Tokens from DIRECTION.md. Every colour, size, space, radius and duration comes from here. */
+:root {
+  color-scheme: light;
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --surface-2: #f3f1ec;
+  --rule: #e4e1da;
+  --rule-strong: #cfcbc2;
+  --ink: #1b1a18;
+  --muted: #5e5b55;
+  --signal: #0e5e6f;
+  --signal-hover: #0b4c5a;
+  --signal-soft: #e3eff1;
+  --on-signal: #ffffff;
+  --pass: #1e7a46;
+  --pass-soft: #e5f2ea;
+  --fail: #b3261e;
+  --fail-soft: #fbe9e7;
+  --warning: #a15c07;
+  --warning-soft: #fbf0e0;
+  --info: #2457a6;
+  --neutral: #6b6a66;
+  --neutral-soft: #eeede9;
+  --focus: #0e5e6f;
+
+  --font-ui: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-law: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-id: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fs-xs: 0.8125rem; /* 13 */
+  --fs-sm: 0.875rem;  /* 14, body */
+  --fs-md: 1rem;      /* 16 */
+  --fs-lg: 1.25rem;   /* 20 */
+  --fs-xl: 1.75rem;   /* 28 */
+
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --r-sm: 4px;
+  --r-md: 8px;
+
+  --dur-press: 120ms;
+  --dur-state: 150ms;
+  --dur-overlay: 200ms;
+  --dur-signature: 300ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --content: 1200px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #141615; --surface: #1c1f1e; --surface-2: #232726; --rule: #2e3231; --rule-strong: #3d4241;
+    --ink: #eceae4; --muted: #a3a09a;
+    --signal: #5fb3c4; --signal-hover: #7cc4d2; --signal-soft: #18302f; --on-signal: #0d1414;
+    --pass: #5cc08a; --pass-soft: #16281e; --fail: #f07b72; --fail-soft: #33191a;
+    --warning: #e0a04a; --warning-soft: #2e2414; --info: #8fb2ea; --neutral: #9a978f; --neutral-soft: #262928;
+    --focus: #7cc4d2;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #141615; --surface: #1c1f1e; --surface-2: #232726; --rule: #2e3231; --rule-strong: #3d4241;
+  --ink: #eceae4; --muted: #a3a09a;
+  --signal: #5fb3c4; --signal-hover: #7cc4d2; --signal-soft: #18302f; --on-signal: #0d1414;
+  --pass: #5cc08a; --pass-soft: #16281e; --fail: #f07b72; --fail-soft: #33191a;
+  --warning: #e0a04a; --warning-soft: #2e2414; --info: #8fb2ea; --neutral: #9a978f; --neutral-soft: #262928;
+  --focus: #7cc4d2;
+}
