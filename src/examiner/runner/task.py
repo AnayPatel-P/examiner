@@ -4,6 +4,7 @@ from inspect_ai import Task, task
 from inspect_ai.dataset import MemoryDataset, Sample
 from inspect_ai.scorer import Scorer
 
+from examiner.runner.budget import JudgeBudget
 from examiner.runner.judge import RUBRICS, judge
 from examiner.runner.scorers import fact_check
 from examiner.runner.solver import http_target
@@ -20,10 +21,11 @@ def examiner_task(
     target: str = "http://localhost:8001",
     variant: str = "naive",
     use_judge: bool = True,
+    judge_budget: JudgeBudget | None = None,
 ) -> Task:
     scorers: list[Scorer] = [fact_check()]
     if use_judge:
-        scorers.extend(judge(r) for r in RUBRICS)
+        scorers.extend(judge(r, judge_budget) for r in RUBRICS)
     return Task(
         dataset=MemoryDataset([scenario_to_sample(s) for s in load_pack(pack)], name=pack),
         solver=http_target(target, variant),

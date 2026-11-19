@@ -19,6 +19,7 @@ from inspect_ai.scorer import (
 from inspect_ai.solver import TaskState
 
 from examiner.meridian.bank import load_fee_schedule
+from examiner.runner.budget import JudgeBudget
 from examiner.runner.solver import transcript_text
 from examiner.scenarios.schema import display_citation
 
@@ -95,7 +96,7 @@ def parse_verdict(text: str) -> tuple[str, str] | None:
     return None
 
 
-def judge(rubric: str = "factual") -> Scorer:
+def judge(rubric: str = "factual", budget: JudgeBudget | None = None) -> Scorer:
     r = RUBRICS[rubric]
 
     @scorer(metrics=[accuracy()], name=f"judge_{rubric}")
@@ -109,11 +110,29 @@ def judge(rubric: str = "factual") -> Scorer:
             }
             if rubric not in scenario.get("rubrics", ["factual"]):
                 return Score(value=NOANSWER, metadata={**meta, "skipped": True})
+            if budget is not None and budget.exhausted():
+                return Score(
+                    value=INCORRECT,
+                    reason="budget_exhausted",
+                    explanation=f"judge budget ${budget.limit_usd} used up",
+                    metadata={**meta, "rationale": ""},
+                )
             system, user = build_judge_messages(rubric, scenario, transcript_text(state.messages))
-            output = await get_model(role="grader").generate(
-                [ChatMessageSystem(content=system), ChatMessageUser(content=user)],
-                config=JUDGE_CONFIG,
-            )
+            model = get_model(role="grader")
+            try:
+                output = await model.generate(
+                    [ChatMessageSystem(content=system), ChatMessageUser(content=user)],
+                    config=JUDGE_CONFIG,
+                )
+            except Exception as e:  # one rubric's API failure must not sink the sample
+                return Score(
+                    value=INCORRECT,
+                    reason="grader_failed",
+                    explanation=f"{type(e).__name__}: {e}",
+                    metadata={**meta, "rationale": ""},
+                )
+            if budget is not None:
+                budget.charge(str(model), output.usage)
             parsed = parse_verdict(output.completion)
             if parsed is None:
                 return Score(

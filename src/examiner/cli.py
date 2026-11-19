@@ -5,8 +5,9 @@ from pathlib import Path
 import typer
 from dotenv import load_dotenv
 from inspect_ai import eval as inspect_eval
-from inspect_ai.model import ModelCost
 
+from examiner.pricing import PRICES
+from examiner.runner.budget import JudgeBudget
 from examiner.runner.task import examiner_task
 from examiner.store import Store
 
@@ -14,24 +15,11 @@ app = typer.Typer(no_args_is_help=True, help="Compliance evals for banking chatb
 
 JUDGE_MODEL = "anthropic/claude-sonnet-5-5"
 
-# USD per million tokens (Anthropic list prices, 2026-11). Cache write = 1.25x input.
-PRICES: dict[str, ModelCost] = {
-    "anthropic/claude-sonnet-5-5": ModelCost(
-        input=2.0, output=10.0, input_cache_write=2.5, input_cache_read=0.10
-    ),
-    "anthropic/claude-haiku-5-5": ModelCost(
-        input=0.10, output=0.50, input_cache_write=0.125, input_cache_read=0.01
-    ),
-}
 
-
-def cost_options(judge_model: str, max_cost: float) -> dict:
-    """Budget cap for priced models. Test models (mockllm) run uncapped."""
-    if judge_model in PRICES:
-        return {"cost_limit": max_cost, "model_cost_config": {judge_model: PRICES[judge_model]}}
-    if judge_model.startswith("mockllm/"):
-        return {}
-    raise typer.BadParameter(f"no price known for {judge_model}; add it to PRICES")
+def judge_budget(judge_model: str, max_run_cost: float) -> JudgeBudget:
+    if judge_model not in PRICES and not judge_model.startswith("mockllm/"):
+        raise typer.BadParameter(f"no price known for {judge_model}; add it to pricing.PRICES")
+    return JudgeBudget(limit_usd=max_run_cost)
 
 
 def _mark(v: int | None) -> str:
@@ -41,11 +29,6 @@ def _mark(v: int | None) -> str:
 @app.callback()
 def main() -> None:
     load_dotenv()
-
-
-def per_sample_cap(max_run_cost: float, n_samples: int, epochs: int) -> float:
-    """Inspect's cost_limit is per sample; split the run budget evenly so judge spend <= cap."""
-    return max_run_cost / max(1, n_samples * epochs)
 
 
 CHECKS = ["fact", "factual", "disclosure", "commitments"]
@@ -86,7 +69,7 @@ def run(
     variant: str = typer.Option("naive", help="Target variant to request."),
     epochs: int = typer.Option(1, min=1),
     max_run_cost: float = typer.Option(
-        5.0, help="Judge spend cap for the whole run, USD (split evenly per sample)."
+        5.0, help="Judge spend cap for the whole run, USD. Judging stops once it is reached."
     ),
     judge_model: str = typer.Option(JUDGE_MODEL),
     db: Path = typer.Option(Path("examiner.db")),
@@ -97,18 +80,19 @@ def run(
 
     try:
         scenarios = load_pack(pack)
-        task = examiner_task(pack=pack, target=target, variant=variant)
+        budget = judge_budget(judge_model, max_run_cost)
+        task = examiner_task(pack=pack, target=target, variant=variant, judge_budget=budget)
     except ValueError as e:
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from e
-    budget = cost_options(judge_model, per_sample_cap(max_run_cost, len(scenarios), epochs))
+    costs = {judge_model: PRICES[judge_model]} if judge_model in PRICES else None
     # The solver never calls the task model; using the judge here keeps every model priced.
     [log] = inspect_eval(
         task,
         model=judge_model,
         model_roles={"grader": judge_model},
         epochs=epochs,
-        **budget,
+        model_cost_config=costs,
         log_dir="logs",
         fail_on_error=False,
         retry_on_error=2,
@@ -140,6 +124,8 @@ def run(
     tc = run_row["target_cost_usd"] if run_row else None
     wall = run_row["wall_seconds"] if run_row else None
     money = lambda v: f"${v:.4f}" if v is not None else "n/a"  # noqa: E731
+    if budget.exhausted():
+        typer.echo(f"\nwarning: judge budget ${max_run_cost} reached; later rubrics not judged")
     typer.echo(
         f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · judge cost {money(jc)} · "
         f"target cost {money(tc)} · wall {wall:.0f}s"

@@ -94,9 +94,9 @@ class Store:
                 if not key.startswith("judge_") or meta.get("skipped"):
                     continue
                 rubric = key.removeprefix("judge_")
-                failed = sc.reason == "grader_failed"
+                failed = sc.reason in ("grader_failed", "budget_exhausted")
                 passed = None if failed else _passed(sc.value)
-                rationale = f"grader_failed: {sc.explanation}" if failed else sc.explanation
+                rationale = f"{sc.reason}: {sc.explanation}" if failed else sc.explanation
                 version = meta.get("judge_version")
                 if version:
                     versions.add(version)

@@ -40,13 +40,11 @@ def test_cli_run_unknown_pack_fails_cleanly(tmp_path: Path, monkeypatch):
     assert "nope" in result.output
 
 
-def test_cost_options_caps_priced_judge():
-    from examiner.cli import cost_options
+def test_cli_builds_run_budget_from_prices():
+    from examiner.cli import judge_budget
 
-    opts = cost_options("anthropic/claude-sonnet-5-5", 0.5)
-    assert opts["cost_limit"] == 0.5
-    assert opts["model_cost_config"]["anthropic/claude-sonnet-5-5"].output == 10.0
-    assert cost_options("mockllm/model", 0.5) == {}
+    b = judge_budget("anthropic/claude-sonnet-5-5", 0.5)
+    assert b.limit_usd == 0.5 and "anthropic/claude-sonnet-5-5" in b.prices
 
 
 def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monkeypatch):

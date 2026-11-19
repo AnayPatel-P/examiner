@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from inspect_ai import eval as inspect_eval
 
-from examiner.cli import per_sample_cap, summarize
+from examiner.cli import summarize
 from examiner.meridian.app import create_app
 from examiner.runner.task import examiner_task
 from examiner.store import Store, target_cost
@@ -57,11 +57,6 @@ def test_missing_usage_is_null_cost(bot, tmp_path: Path):
 
 def test_target_cost_uses_haiku_prices():
     assert target_cost(1_000_000, 1_000_000) == pytest.approx(0.60)
-
-
-def test_per_sample_cap_from_run_cap():
-    assert per_sample_cap(5.0, 120, 1) == pytest.approx(5.0 / 120)
-    assert per_sample_cap(5.0, 20, 4) == pytest.approx(5.0 / 80)
 
 
 def test_summary_by_area():
