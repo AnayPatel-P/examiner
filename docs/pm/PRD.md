@@ -146,4 +146,4 @@ Python 3.12 + uv · Inspect (inspect_ai) runner with a custom HTTP target solver
 | More regs (Reg Z credit cards, FCRA disputes) | Breadth for a real buyer | L | v2 |
 
 ## 14. Design
-_Filled in after ui-direct (Phase 4.0)._
+Direction: `DIRECTION.md` (ui-direct, 2026-11-18). No concept: a clean, characterful system. Character from Public Sans UI + Source Serif 4 for regulation text, one ledger-teal signal (#0E5E6F), a dry "findings first" voice, and the citation block. Light leads, dark offered. Workhorse-dominant (7 Workhorse, 1 Feature). Signature: the Diff page's two 127-tick strips, where run B's ticks flip from A's verdicts in one 300 ms wave and settle on "Fixed N · Broke M".
