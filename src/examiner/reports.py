@@ -94,3 +94,46 @@ def run_summary(run: Row, results: Sequence[Row]) -> dict:
         vals = [v for r in results if (v := check_value(r, check, {})) is not None]
         out[check] = _cell(sum(vals), len(vals))
     return out
+
+
+DIFF_CATEGORIES = ["fixed", "broke", "still_fail", "still_pass", "unscored", "only_a", "only_b"]
+
+
+def diff_runs(
+    a_results: Iterable[Row],
+    a_scores: Iterable[Row],
+    b_results: Iterable[Row],
+    b_scores: Iterable[Row],
+    check: str = "overall",
+) -> dict:
+    """Compare two runs sample by sample on one check (overall, fact, judge or a rubric)."""
+    if check not in CHECKS:
+        raise ValueError(f"unknown check {check!r}; use one of {', '.join(CHECKS)}")
+
+    def values(results: Iterable[Row], scores: Iterable[Row]) -> dict[tuple[str, int], int | None]:
+        rubrics = rubric_map(scores)
+        return {
+            (r["sample_id"], r["epoch"]): check_value(
+                r, check, rubrics.get((r["sample_id"], r["epoch"]), {})
+            )
+            for r in results
+        }
+
+    a, b = values(a_results, a_scores), values(b_results, b_scores)
+    out: dict = {c: [] for c in DIFF_CATEGORIES}
+    for key in sorted(a.keys() | b.keys()):
+        if key not in b:
+            cat = "only_a"
+        elif key not in a:
+            cat = "only_b"
+        else:
+            va, vb = a[key], b[key]
+            if va is None or vb is None:
+                cat = "unscored"
+            else:
+                cat = {(0, 1): "fixed", (1, 0): "broke", (0, 0): "still_fail"}.get(
+                    (va, vb), "still_pass"
+                )
+        out[cat].append({"sample_id": key[0], "epoch": key[1], "a": a.get(key), "b": b.get(key)})
+    out["counts"] = {c: len(out[c]) for c in DIFF_CATEGORIES}
+    return out

@@ -10,7 +10,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from examiner.calibration import calibration_by_rubric
-from examiner.reports import areas_for, overall_pass, rubric_map, run_summary, scorecard
+from examiner.reports import (
+    CHECKS,
+    areas_for,
+    diff_runs,
+    overall_pass,
+    rubric_map,
+    run_summary,
+    scorecard,
+)
 from examiner.runner.judge import rubric_guide
 from examiner.scenarios.lint import cited_text
 from examiner.scenarios.schema import RUBRIC_NAMES, Rubric, display_citation, load_pack
@@ -200,5 +208,18 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
     def calibration() -> dict:
         s = store()
         return calibration_by_rubric({r: s.judged_with_labels(r) for r in RUBRIC_NAMES})
+
+    @api.get("/api/diff")
+    def diff(a: str, b: str, check: str = "overall") -> dict:
+        if check not in CHECKS:
+            raise HTTPException(422, f"unknown check {check!r}; use one of {', '.join(CHECKS)}")
+        s = store()
+        run_a, run_b = get_run(s, a), get_run(s, b)
+        res_a, res_b = s.results(a), s.results(b)
+        return {
+            "check": check,
+            "a": run_summary(run_a, res_a),
+            "b": run_summary(run_b, res_b),
+        } | diff_runs(res_a, s.scores(a), res_b, s.scores(b), check)
 
     return api

@@ -307,3 +307,33 @@ def serve(
     from examiner.api.app import create_api
 
     uvicorn.run(create_api(db), port=port)
+
+
+@app.command()
+def diff(
+    a: str = typer.Argument(..., help="Baseline run id."),
+    b: str = typer.Argument(..., help="New run id."),
+    check: str = typer.Option("overall", help="overall, fact, judge or a rubric name."),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """What run B fixed and broke compared with run A."""
+    from examiner.reports import diff_runs
+
+    store = Store(db)
+    for rid in (a, b):
+        if store.run(rid) is None:
+            typer.echo(f"error: no run {rid}", err=True)
+            raise typer.Exit(2)
+    try:
+        d = diff_runs(store.results(a), store.scores(a), store.results(b), store.scores(b), check)
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
+    c = d["counts"]
+    typer.echo(
+        f"{check}: fixed {c['fixed']} · broke {c['broke']} · still fail {c['still_fail']} · "
+        f"still pass {c['still_pass']} · unscored {c['unscored']} · "
+        f"only in A {c['only_a']} · only in B {c['only_b']}"
+    )
+    for cat in ("broke", "fixed", "still_fail"):
+        for item in d[cat]:
+            typer.echo(f"  {cat:<10} {item['sample_id']} (epoch {item['epoch']})")
