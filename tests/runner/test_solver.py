@@ -55,3 +55,11 @@ def test_transcript_text_labels_roles():
 
     text = transcript_text([ChatMessageUser(content="hi"), ChatMessageAssistant(content="yo")])
     assert text == "USER: hi\nBOT: yo"
+
+
+def test_empty_reply_is_target_error(bot, tmp_path: Path):
+    url, srv = bot
+    srv.reply = lambda msgs: "   "
+    log = run(url, tmp_path, sample_id="fees-nsf")
+    [sample] = log.samples or []
+    assert sample.error is not None and "empty reply" in sample.error.message

@@ -56,9 +56,11 @@ def anthropic_responder() -> Responder:
     client = AsyncAnthropic()
 
     async def respond(system: str, messages: list[dict]) -> tuple[str, dict]:
+        # Haiku 5.5 thinks by default; leave room so thinking can't use up the reply budget.
         msg = await client.messages.create(
             model=TARGET_MODEL,
-            max_tokens=600,
+            max_tokens=4000,
+            output_config={"effort": "low"},
             system=system,
             messages=messages,  # type: ignore[arg-type]
         )

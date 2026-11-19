@@ -36,6 +36,8 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
                     body = resp.json()
                     reply = body["reply"]
                     turn_usage = body.get("usage")
+                    if not str(reply).strip():
+                        raise ValueError("empty reply")
                 except (httpx.HTTPError, KeyError, ValueError) as e:
                     raise RuntimeError(f"target error: {type(e).__name__}: {e}") from e
                 if usage is not None and isinstance(turn_usage, dict):

@@ -87,3 +87,12 @@ def test_misinformed_facts_really_differ_from_truth():
 
     assert "test fixture" in (DATA_DIR / "misinformed.md").read_text().lower()
     assert "fixture" not in MISINFORMED_SYSTEM.lower()
+
+
+def test_anthropic_responder_leaves_room_for_thinking():
+    import inspect
+
+    from examiner.meridian import app as app_module
+
+    src = inspect.getsource(app_module.anthropic_responder)
+    assert "max_tokens=4000" in src and '"effort": "low"' in src
