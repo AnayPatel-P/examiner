@@ -198,3 +198,15 @@ def label(labels: Path = typer.Option(Path("spike/labels.csv"))) -> None:
             _save_sheet(labels, rows)
     done = sum(1 for r in rows if (r.get("human_pass") or "").strip())
     typer.echo(f"\n{done}/{len(rows)} labeled, saved to {labels}")
+
+
+@app.command("regs-fetch")
+def regs_fetch(
+    date: str = typer.Option(..., help="eCFR point-in-time date, YYYY-MM-DD."),
+    out: Path | None = typer.Option(None, help="Snapshot path (default: the packaged one)."),
+) -> None:
+    """Refresh the Reg E paragraph snapshot from eCFR."""
+    from examiner.regs import ecfr
+
+    n = ecfr.write_snapshot(date, out or ecfr.SNAPSHOT)
+    typer.echo(f"wrote {n} paragraphs of 12 CFR 1005 as of {date}")
