@@ -6,7 +6,8 @@ turns:
 must_say:
   - {id: sixty-days, any_of: ["60 days", "sixty days"]}
 must_not_say: []
-citation: "12 CFR 1005.6(b)(3)"
+citations:
+  - "12 CFR 1005.6(b)(3)"
 source_note: >-
   To keep liability limited for unauthorized transfers shown on a statement, the consumer
   must report within 60 days of the statement being sent.

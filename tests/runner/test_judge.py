@@ -46,7 +46,7 @@ def test_judge_prompt_excludes_must_say():
     s = next(s for s in load_pack("smoke") if s.id == "fees-nsf")
     prompt = build_judge_prompt(s.model_dump(), "USER: q\nBOT: a")
     assert "don't charge NSF" not in prompt
-    assert s.citation in prompt and s.source_note in prompt
+    assert s.citation_display in prompt and s.source_note in prompt
     assert '"fee_per_item_usd": 34' in prompt
     assert "USER: q\nBOT: a" in prompt
 

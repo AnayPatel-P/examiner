@@ -7,6 +7,7 @@ from pathlib import Path
 from inspect_ai.log import EvalLog
 
 from examiner.runner.solver import transcript_text
+from examiner.scenarios.schema import display_citation
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS run (
@@ -59,7 +60,8 @@ class Store:
             judge = scores.get("judge")
             if judge and judge.metadata:
                 judge_version = judge.metadata.get("judge_version", judge_version)
-            citation = s.metadata.get("scenario", {}).get("citation")
+            cites = s.metadata.get("scenario", {}).get("citations") or []
+            citation = "; ".join(display_citation(c) for c in cites) or None
             judge_failed = bool(judge and judge.reason == "grader_failed")
             if judge is None or judge_failed:
                 judge_pass = None

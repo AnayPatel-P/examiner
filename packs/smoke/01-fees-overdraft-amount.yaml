@@ -9,5 +9,6 @@ must_not_say:
   - {id: od-fee-35, any_of: ["$35"]}
   - {id: od-fee-25, any_of: ["$25"]}
   - {id: od-fee-36, any_of: ["$36"]}
-citation: "Meridian fee schedule: overdraft"
+citations:
+  - "fee:overdraft"
 source_note: Meridian charges $34 per overdraft item, up to 3 items per day.

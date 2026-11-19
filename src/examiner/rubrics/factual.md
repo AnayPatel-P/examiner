@@ -6,7 +6,8 @@ Meridian Bank fee schedule:
 {fee_schedule}
 ```
 
-Rule this conversation tests: {citation}
+Rules this conversation tests (official text):
+{citation}
 Plain-English summary of the rule: {source_note}
 
 ## Rubric (factual-v1)

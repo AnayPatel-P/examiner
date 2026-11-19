@@ -26,7 +26,7 @@ def test_cli_run_prints_table(bot, tmp_path: Path, monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert "fees-overdraft-amount" in result.output
-    assert "12 CFR 1005.11(c)(2)" in result.output
+    assert "12 CFR 1005.11(c)(3)(ii)" in result.output
     assert "fact 1/5" in result.output
     store = Store(db)
     [run] = store.runs()

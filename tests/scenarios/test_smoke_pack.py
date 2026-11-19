@@ -11,7 +11,7 @@ def passes(sid: str, reply: str) -> bool:
 
 
 def test_investigation_cites_paragraph_c2():
-    assert PACK["rege-investigation-time"].citation.startswith("12 CFR 1005.11(c)(2)")
+    assert PACK["rege-investigation-time"].citations[0] == "12 CFR 1005.11(c)(2)"
 
 
 def test_nsf_fee_charged_below_zero_balance_fails():

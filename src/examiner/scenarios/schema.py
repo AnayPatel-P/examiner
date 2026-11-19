@@ -9,6 +9,13 @@ from pydantic import BaseModel, Field
 PACKS_DIR = Path(__file__).resolve().parents[3] / "packs"
 
 
+def display_citation(cite: str) -> str:
+    """`fee:overdraft` -> `Meridian fee schedule: overdraft`; reg cites unchanged."""
+    if cite.startswith("fee:"):
+        return "Meridian fee schedule: " + cite.removeprefix("fee:")
+    return cite
+
+
 class Fact(BaseModel):
     id: str
     any_of: list[str] = Field(min_length=1)
@@ -23,8 +30,13 @@ class Scenario(BaseModel):
     must_say: list[Fact]
     must_not_say: list[Fact]
     rubrics: list[str] = Field(default_factory=lambda: ["factual"])
-    citation: str = Field(min_length=1)
+    citations: list[str] = Field(min_length=1)
     source_note: str
+    seed_id: str | None = None
+
+    @property
+    def citation_display(self) -> str:
+        return "; ".join(display_citation(c) for c in self.citations)
 
 
 def load_pack(name: str, root: Path = PACKS_DIR) -> list[Scenario]:

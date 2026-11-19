@@ -10,15 +10,22 @@ from inspect_ai.solver import TaskState
 
 from examiner.meridian.bank import load_fee_schedule
 from examiner.runner.solver import transcript_text
+from examiner.scenarios.schema import display_citation
 
 JUDGE_VERSION = "factual-v1"
 RUBRIC_PATH = Path(__file__).resolve().parents[1] / "rubrics" / "factual.md"
 
 
+def rules_block(citations: list[str]) -> str:
+    from examiner.scenarios.lint import cited_text
+
+    return "\n".join(f"- {display_citation(c)}: {cited_text(c)}" for c in citations)
+
+
 def build_judge_prompt(scenario: dict, transcript: str) -> str:
     return RUBRIC_PATH.read_text().format(
         fee_schedule=json.dumps(load_fee_schedule(), indent=2),
-        citation=scenario["citation"],
+        citation=rules_block(scenario["citations"]),
         source_note=scenario["source_note"],
         transcript=transcript,
     )
@@ -45,7 +52,7 @@ def judge() -> Scorer:
         meta = {
             "judge_version": JUDGE_VERSION,
             "rubric": "factual",
-            "citation": scenario["citation"],
+            "citation": "; ".join(display_citation(c) for c in scenario["citations"]),
         }
         parsed = parse_verdict(output.completion)
         if parsed is None:

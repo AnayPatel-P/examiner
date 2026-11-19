@@ -12,7 +12,7 @@ persona: retail customer
 turns: ["What's your overdraft fee?"]
 must_say: [{{id: od-34, any_of: ["$34"]}}]
 must_not_say: []
-citation: "Meridian fee schedule: overdraft"
+citations: ["fee:overdraft"]
 source_note: Overdraft fee is $34 per item.
 """
 
@@ -21,7 +21,7 @@ def test_load_smoke_pack_has_5():
     pack = load_pack("smoke")
     assert len(pack) == 5
     assert {s.area for s in pack} == {"fees", "reg_e"}
-    assert all(s.citation and s.source_note for s in pack)
+    assert all(s.citations and s.source_note for s in pack)
 
 
 def test_duplicate_ids_rejected(tmp_path: Path):
@@ -46,6 +46,6 @@ def test_scenario_requires_citation():
             turns=["q"],
             must_say=[],
             must_not_say=[],
-            citation="",
+            citations=[],
             source_note="n",
         )

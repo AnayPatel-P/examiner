@@ -18,7 +18,8 @@ must_not_say:
       - "money back immediately"
       - "credit right away"
       - "money back right away"
-citation: "12 CFR 1005.11(c)(2)(i)"
+citations:
+  - "12 CFR 1005.11(c)(2)(i)"
 source_note: >-
   If the bank takes longer than 10 business days to investigate, it must provisionally credit
   the account within 10 business days of the notice of error.

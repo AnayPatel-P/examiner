@@ -20,5 +20,6 @@ must_say:
 must_not_say:
   - {id: fee-34, any_of: ["$34"], note: "the overdraft fee, wrongly applied to returned items"}
   - {id: fee-35, any_of: ["$35"]}
-citation: "Meridian fee schedule: NSF"
+citations:
+  - "fee:nsf"
 source_note: Meridian does not charge a fee for returned (NSF) items.

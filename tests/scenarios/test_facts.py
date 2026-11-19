@@ -28,7 +28,7 @@ def test_check_facts_missing_and_forbidden():
         turns=["q"],
         must_say=[FEE],
         must_not_say=[Fact(id="od-35", any_of=["$35"])],
-        citation="c",
+        citations=["fee:overdraft"],
         source_note="n",
     )
     bad = check_facts(s, "The fee is $35.")

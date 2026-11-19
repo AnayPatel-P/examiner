@@ -24,7 +24,7 @@ def fact_check() -> Scorer:
             metadata={
                 "missing": result.missing,
                 "forbidden": result.forbidden,
-                "citation": scenario.citation,
+                "citation": scenario.citation_display,
             },
         )
 
