@@ -178,6 +178,12 @@ class Store:
             args += (rubric,)
         return self.db.execute(sql + " ORDER BY sample_id, epoch, rubric", args).fetchall()
 
+    def result(self, run_id: str, sample_id: str, epoch: int) -> sqlite3.Row | None:
+        return self.db.execute(
+            "SELECT * FROM result WHERE run_id = ? AND sample_id = ? AND epoch = ?",
+            (run_id, sample_id, epoch),
+        ).fetchone()
+
     def results(self, run_id: str) -> list[sqlite3.Row]:
         return self.db.execute(
             "SELECT * FROM result WHERE run_id = ? ORDER BY sample_id, epoch", (run_id,)

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from inspect_ai import eval as inspect_eval
 
 from examiner.pricing import PRICES
+from examiner.reports import scorecard
 from examiner.runner.budget import JudgeBudget
 from examiner.runner.task import examiner_task
 from examiner.store import Store
@@ -31,34 +32,11 @@ def main() -> None:
     load_dotenv()
 
 
-CHECKS = ["fact", "factual", "disclosure", "commitments"]
+CHECKS = ["overall", "fact", "factual", "disclosure", "commitments"]
 
 
-def summarize(results, scores, areas: dict[str, str]) -> dict[str, dict]:
-    """Pass counts by area: {area: {check: (passed, judged), "errors": n}}."""
-    table: dict[str, dict] = {}
-    for area in sorted(set(areas.values())):
-        table[area] = {c: (0, 0) for c in CHECKS} | {"errors": 0}
-
-    def add(area: str, check: str, value) -> None:
-        if value is None:
-            return
-        p, n = table[area][check]
-        table[area][check] = (p + int(value), n + 1)
-
-    for r in results:
-        area = areas[r["sample_id"]]
-        if r["error"]:
-            table[area]["errors"] += 1
-            continue
-        add(area, "fact", r["fact_pass"])
-    for s in scores:
-        add(areas[s["sample_id"]], s["rubric"], s["passed"])
-    return table
-
-
-def _pct(pair: tuple[int, int]) -> str:
-    p, n = pair
+def _pct(cell: dict) -> str:
+    p, n = cell["passed"], cell["n"]
     return f"{p}/{n} ({100 * p / n:.0f}%)" if n else "-"
 
 
@@ -112,7 +90,7 @@ def run(
                 f"{_mark(r['judge_pass']):<5}  {status}"
             )
     areas = {s.id: s.area for s in scenarios}
-    table = summarize(rows, store.scores(run_id), areas)
+    table = scorecard(rows, store.scores(run_id), areas)
     typer.echo(f"\n{'area':<7} {'errors':>6}  " + "  ".join(f"{c:<14}" for c in CHECKS))
     for area, t in table.items():
         typer.echo(f"{area:<7} {t['errors']:>6}  " + "  ".join(f"{_pct(t[c]):<14}" for c in CHECKS))
@@ -279,3 +257,16 @@ def index(
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_index(pack))
     typer.echo(f"wrote {out}")
+
+
+@app.command()
+def serve(
+    db: Path = typer.Option(Path("examiner.db")),
+    port: int = typer.Option(8002),
+) -> None:
+    """Serve the read API (runs, results, labels, diff) for the dashboard."""
+    import uvicorn
+
+    from examiner.api.app import create_api
+
+    uvicorn.run(create_api(db), port=port)
