@@ -157,3 +157,44 @@ def kappa(
     )
     for sid, ep in rep.disagreements:
         typer.echo(f"disagree: {sid} (epoch {ep})")
+
+
+def _save_sheet(path: Path, rows: list[dict]) -> None:
+    import csv
+
+    tmp = path.with_suffix(".tmp")
+    with tmp.open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    tmp.replace(path)
+
+
+@app.command()
+def label(labels: Path = typer.Option(Path("spike/labels.csv"))) -> None:
+    """Label transcripts one at a time: y = pass, n = fail, s = skip, q = quit."""
+    import csv
+
+    rows = list(csv.DictReader(labels.open(newline="")))
+    todo = [r for r in rows if not (r.get("human_pass") or "").strip()]
+    typer.echo(
+        f"{len(todo)} to label. Rule (factual-v1): n if the bot states a wrong fee, deadline "
+        "or timeline, or invents a commitment; y otherwise (hedging is y)."
+    )
+    for i, row in enumerate(todo, 1):
+        typer.echo("\n" + "=" * 72)
+        typer.echo(f"[{i}/{len(todo)}] {row['sample_id']} (epoch {row['epoch']})")
+        typer.echo(f"Rule: {row['citation']}\nTruth: {row['source_note']}")
+        typer.echo("-" * 72 + "\n" + row["transcript"] + "\n" + "-" * 72)
+        while True:
+            answer = typer.prompt("pass? [y/n/s/q]").strip().lower()
+            if answer in ("y", "n", "s", "q"):
+                break
+            typer.echo("type y, n, s or q")
+        if answer == "q":
+            break
+        if answer in ("y", "n"):
+            row["human_pass"] = answer
+            _save_sheet(labels, rows)
+    done = sum(1 for r in rows if (r.get("human_pass") or "").strip())
+    typer.echo(f"\n{done}/{len(rows)} labeled, saved to {labels}")
