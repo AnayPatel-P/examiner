@@ -65,9 +65,10 @@ async def generate_variants(
         if path.exists():
             report.skipped += 1
             continue
-        persona = persona_for(seed.id)
-        turns = None
-        for _ in range(2):
+        start = PERSONAS.index(persona_for(seed.id))
+        turns, persona = None, PERSONAS[start]
+        for attempt in range(2):  # a retry switches persona: some barely change the wording
+            persona = PERSONAS[(start + attempt) % len(PERSONAS)]
             candidate = await paraphraser(seed.turns, persona)
             if len(candidate) == len(seed.turns) and not is_duplicate(candidate, seed.turns):
                 turns = candidate

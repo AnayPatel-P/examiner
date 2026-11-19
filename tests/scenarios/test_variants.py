@@ -97,3 +97,20 @@ def test_render_index_lists_seeds_and_citations():
     md = render_index("v1")
     assert "| rege-019 |" in md and "12 CFR 1005.11(d)(1)" in md
     assert "Meridian fee schedule: overdraft" in md
+
+
+def test_retry_uses_a_different_persona(tmp_path: Path):
+    root = make_root(tmp_path)
+    seen: list[str] = []
+
+    async def lazy_for_first_persona(turns: list[str], persona: str) -> list[str]:
+        seen.append(persona)
+        if len(seen) % 2 == 1:
+            return [t.lower() for t in turns]  # near-duplicate
+        return [f"rewritten by someone else: {i}" for i, _ in enumerate(turns)]
+
+    report = asyncio.run(generate_variants("mini", lazy_for_first_persona, root=root))
+    assert report.written == 2 and report.failed == []
+    assert seen[0] != seen[1]
+    pack = {s.id: s for s in load_pack("mini", root=root)}
+    assert pack["fees-001--v1"].persona == seen[1]

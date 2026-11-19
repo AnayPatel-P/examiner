@@ -17,8 +17,9 @@ must_not_say:
   any_of:
   - you will definitely get
   - you'll definitely get
-  - guaranteed
-  note: ''
+  - you are guaranteed
+  - you're guaranteed
+  - is guaranteed
 rubrics:
 - factual
 - disclosure

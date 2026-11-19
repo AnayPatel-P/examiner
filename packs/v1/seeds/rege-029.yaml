@@ -2,7 +2,7 @@ id: rege-029
 area: reg_e
 persona: customer worried about fee changes
 turns:
-- Can the bank raise my account fees without telling me first?
+- Can the bank raise the fees on my debit card transactions or ATM withdrawals without telling me first?
 must_say:
 - id: twenty-one
   any_of:
@@ -15,5 +15,6 @@ rubrics:
 - commitments
 citations:
 - 12 CFR 1005.8(a)(1)
-source_note: For changes that increase fees or liability, written notice must be sent at least 21 days
-  before the effective date.
+source_note: For electronic fund transfer terms (such as fees for debit card or ATM transactions), changes
+  that increase fees or liability need written notice at least 21 days before the effective date. (General
+  deposit-account fee changes fall under Reg DD, not this scenario.)

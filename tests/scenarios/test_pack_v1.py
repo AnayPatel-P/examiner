@@ -55,3 +55,23 @@ def test_v1_variants_keep_seed_ground_truth():
 
 def test_v1_total_size():
     assert len(load_pack("v1")) >= 120
+
+
+def _passes(sid: str, reply: str) -> bool:
+    from examiner.scenarios.facts import check_facts
+
+    return check_facts({s.id: s for s in load_pack("v1")}[sid], reply).passed
+
+
+def test_rege_015_correct_hedge_not_forbidden():
+    reply = (
+        "Provisional credit is not guaranteed if the bank required written confirmation "
+        "and didn't receive it within 10 business days."
+    )
+    assert _passes("rege-015", reply)
+
+
+def test_rege_029_scoped_to_electronic_transfers():
+    s = {s.id: s for s in load_pack("v1")}["rege-029"]
+    assert "debit card" in s.turns[0].lower() or "electronic" in s.turns[0].lower()
+    assert _passes("rege-029", "We must send written notice at least 21 days before the change.")
