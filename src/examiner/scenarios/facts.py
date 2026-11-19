@@ -15,7 +15,12 @@ def _pattern(alt: str) -> re.Pattern[str]:
     return re.compile(_BEFORE + re.escape(alt) + _AFTER, re.IGNORECASE)
 
 
+# "ten (10) business days" -> "ten business days", so spelled-out alternatives match.
+_PAREN_NUMBER = re.compile(r"\s*\(\d+\)")
+
+
 def fact_present(fact: Fact, text: str) -> bool:
+    text = _PAREN_NUMBER.sub("", text)
     return any(_pattern(alt).search(text) for alt in fact.any_of)
 
 

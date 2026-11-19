@@ -8,14 +8,14 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 ## Phase 1 — Walking skeleton + judge spike
 **Goal:** one scenario flows end to end: Meridian bot → Inspect run → judge score → SQLite row.
 **Demo:** `examiner run --target http://localhost:8001 --pack smoke` prints a pass/fail table for 5 scenarios; a spike notebook shows judge-vs-Anay agreement on 20 transcripts.
-- [ ] 1.1 Repo baseline: uv, ruff, pyright, pytest, `.env.example`, Makefile (`make dev`, `make test`), CI on push
-- [ ] 1.2 Meridian Bank data: fictional fee schedule + FAQ (JSON/Markdown)
-- [ ] 1.3 Meridian bot `POST /chat` (FastAPI, Haiku 5.5), `naive` variant only
-- [ ] 1.4 Scenario schema (Pydantic) + 5 hand-written smoke scenarios
-- [ ] 1.5 Inspect task + custom HTTP solver (multi-turn) + deterministic fact scorer
-- [ ] 1.6 Sonnet judge scorer, one rubric (factual accuracy)
-- [ ] 1.7 Index results into SQLite
-- [ ] 1.8 Spike: label 20 transcripts by hand, compute kappa, write findings in DECISIONS.md
+- [x] 1.1 Repo baseline: uv, ruff, pyright, pytest, `.env.example`, Makefile (`make dev`, `make test`), CI on push
+- [x] 1.2 Meridian Bank data: fictional fee schedule + FAQ (JSON/Markdown)
+- [x] 1.3 Meridian bot `POST /chat` (FastAPI, Haiku 5.5), `naive` variant only
+- [x] 1.4 Scenario schema (Pydantic) + 5 hand-written smoke scenarios
+- [x] 1.5 Inspect task + custom HTTP solver (multi-turn) + deterministic fact scorer
+- [x] 1.6 Sonnet judge scorer, one rubric (factual accuracy)
+- [x] 1.7 Index results into SQLite
+- [ ] 1.8 Spike: label 20 transcripts by hand, compute kappa, write findings in DECISIONS.md (tooling done: `examiner label-export` / `examiner kappa`; needs a live run + Anay's labels)
 **Done when:**
 - [ ] One command runs the 5 smoke scenarios and stores results
 - [ ] Spike result logged: judge agreement number + go/no-go on the judge approach

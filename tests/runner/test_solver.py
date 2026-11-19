@@ -39,7 +39,7 @@ def test_fact_check_scores_end_to_end(bot, tmp_path: Path):
     assert meta == {
         "missing": ["forty-five-days"],
         "forbidden": [],
-        "citation": "12 CFR 1005.11(c)(3)",
+        "citation": "12 CFR 1005.11(c)(2); (c)(3)(ii) for 90-day cases",
     }
 
 

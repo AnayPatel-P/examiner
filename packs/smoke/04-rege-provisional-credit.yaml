@@ -6,9 +6,19 @@ turns:
   - "When will I get my money back while you investigate?"
 must_say:
   - {id: ten-business-days, any_of: ["10 business days", "ten business days"]}
+  - id: provisional-credit
+    any_of: ["provisional credit", "provisionally credit", "temporary credit", "temporarily credit"]
 must_not_say:
-  - {id: immediate, any_of: ["immediately", "right away"]}
-citation: "12 CFR 1005.11(c)(2)"
+  - id: immediate-credit
+    any_of:
+      - "credit immediately"
+      - "credited immediately"
+      - "credit your account immediately"
+      - "refund immediately"
+      - "money back immediately"
+      - "credit right away"
+      - "money back right away"
+citation: "12 CFR 1005.11(c)(2)(i)"
 source_note: >-
   If the bank takes longer than 10 business days to investigate, it must provisionally credit
   the account within 10 business days of the notice of error.

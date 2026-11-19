@@ -49,7 +49,11 @@ def run(
     pack: str = typer.Option("smoke", help="Scenario pack under packs/."),
     variant: str = typer.Option("naive", help="Target variant to request."),
     epochs: int = typer.Option(1, min=1),
-    max_cost: float = typer.Option(1.0, help="Abort when judge spend passes this (USD)."),
+    max_cost_per_sample: float = typer.Option(
+        0.25,
+        help="Per-sample judge spend cap in USD (Inspect cost_limit is per sample). "
+        "A run-level cap comes in roadmap 2.6.",
+    ),
     judge_model: str = typer.Option(JUDGE_MODEL),
     db: Path = typer.Option(Path("examiner.db")),
 ) -> None:
@@ -59,7 +63,7 @@ def run(
     except ValueError as e:
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from e
-    budget = cost_options(judge_model, max_cost)
+    budget = cost_options(judge_model, max_cost_per_sample)
     # The solver never calls the task model; using the judge here keeps every model priced.
     [log] = inspect_eval(
         task,

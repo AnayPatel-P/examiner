@@ -26,7 +26,7 @@ def test_cli_run_prints_table(bot, tmp_path: Path, monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert "fees-overdraft-amount" in result.output
-    assert "12 CFR 1005.11(c)(3)" in result.output
+    assert "12 CFR 1005.11(c)(2)" in result.output
     assert "fact 1/5" in result.output
     store = Store(db)
     [run] = store.runs()
@@ -87,3 +87,8 @@ def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monke
     res = runner.invoke(app, ["kappa", "--run", run["id"], "--labels", str(out), "--db", db])
     assert res.exit_code == 0, res.output
     assert "n=5" in res.output and "kappa" in res.output
+
+
+def test_cost_cap_option_is_per_sample():
+    result = CliRunner().invoke(app, ["run", "--help"])
+    assert "--max-cost-per-sample" in result.output

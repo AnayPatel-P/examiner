@@ -16,7 +16,7 @@
 - Fictional bank "Meridian Bank" only; public regulation text only; no Wio material (D11).
 - Every scenario carries a reg or fee-schedule citation (e.g. `12 CFR 1005.11(c)`, `Meridian fee schedule §overdraft`).
 - Judge prompt has a version string (`JUDGE_VERSION = "factual-v1"`) stored on every score.
-- Default run cost cap: `--max-cost 1.00` USD for smoke (Inspect `cost_limit`).
+- Per-sample judge cap `--max-cost-per-sample 0.25` USD (Inspect `cost_limit` is per sample; a run-level cap is roadmap 2.6).
 - Unit tests make no network calls: the bot takes an injectable responder, Inspect tests use `mockllm/model`.
 
 ## Review Focus
@@ -74,7 +74,7 @@ Smoke scenarios, one YAML file each:
 2. `fees-nsf`: "If a check bounces do you charge an NSF fee?" must_say any_of `["no NSF fee","don't charge an NSF","do not charge an NSF","$0"]`; must_not_say `["$34 NSF", "$35"]`; citation fee schedule NSF.
 3. `rege-unauthorized-report-window`: "Someone used my debit card without permission, how long do I have to report it?" must_say `["60 days"]`; citation `12 CFR 1005.6(b)(3)`.
 4. `rege-provisional-credit`: 2 turns: "I found an error on my statement and reported it." then "When will I get my money back while you investigate?" must_say `["10 business days"]`; must_not_say `["immediately","right away"]`; citation `12 CFR 1005.11(c)(2)`.
-5. `rege-investigation-time`: "How long can the bank take to investigate a disputed transaction?" must_say `["45 days"]`; citation `12 CFR 1005.11(c)(3)`.
+5. `rege-investigation-time`: "How long can the bank take to investigate a disputed transaction?" must_say `["45 days"]`; citation `12 CFR 1005.11(c)(2)` (extensions in (c)(3)).
 
 Each scenario has a `source_note` explaining the rule in one plain-English line.
 
@@ -129,7 +129,7 @@ Rubric text (factual-v1): fail if the bot states a fee amount, deadline, or time
   - `result(run_id, sample_id, epoch INT, transcript TEXT, fact_pass INT, fact_detail JSON, judge_pass INT, judge_rationale TEXT, citation TEXT, error TEXT, PRIMARY KEY(run_id, sample_id, epoch))`.
 - `Store.index_log(log: EvalLog, target: str, variant: str) -> str` returns run_id (`log.eval.eval_id`) and upserts. Cost comes from `log.stats` model usage when available, else NULL.
 - `Store.results(run_id) -> list[sqlite3.Row]`.
-- CLI: `examiner run --target URL --pack NAME [--variant naive] [--epochs 1] [--max-cost 1.0] [--db examiner.db]`. It loads `.env` (python-dotenv), calls `inspect_ai.eval(examiner_task(...), model="none/none" if supported else the target model id for logging, model_roles={"grader": "anthropic/claude-sonnet-5-5"}, epochs, cost_limit=max_cost, log_dir="logs", fail_on_error=False, max_samples=8)`, indexes the log, and prints a table: `scenario | fact | judge | citation`, plus a summary line `fact x/5 · judge y/5 · cost $z`. It exits non-zero only on a setup error, not on scenario failures.
+- CLI: `examiner run --target URL --pack NAME [--variant naive] [--epochs 1] [--max-cost-per-sample 0.25] [--db examiner.db]`. It loads `.env` (python-dotenv), calls `inspect_ai.eval(examiner_task(...), model="none/none" if supported else the target model id for logging, model_roles={"grader": "anthropic/claude-sonnet-5-5"}, epochs, cost_limit=max_cost_per_sample, log_dir="logs", fail_on_error=False, max_samples=8)`, indexes the log, and prints a table: `scenario | fact | judge | citation`, plus a summary line `fact x/5 · judge y/5 · cost $z`. It exits non-zero only on a setup error, not on scenario failures.
 
 - [ ] Tests: `test_index_log_upsert_no_duplicates` (index the same log twice and get the same row count, using a real log produced with mockllm in a fixture), `test_index_records_error_samples`, `test_cli_run_prints_table` (Typer CliRunner against the fixture bot + mockllm grader via an env/flag override `--judge-model mockllm/model`).
 - [ ] Implement, run green, commit `feat: SQLite index and examiner run CLI`.

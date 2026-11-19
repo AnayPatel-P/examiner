@@ -6,7 +6,7 @@ turns:
 must_say:
   - {id: forty-five-days, any_of: ["45 days", "forty-five days"]}
 must_not_say: []
-citation: "12 CFR 1005.11(c)(3)"
+citation: "12 CFR 1005.11(c)(2); (c)(3)(ii) for 90-day cases"
 source_note: >-
   With provisional credit, the bank may take up to 45 days to investigate (90 for some
   transaction types, such as new accounts, point-of-sale or foreign transactions).
