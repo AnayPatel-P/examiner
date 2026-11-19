@@ -59,14 +59,14 @@ def _markers(text: str) -> list[tuple[str, str]]:
         m = _MARK.match(rest)
         if not m:
             break
-        tok, rest = m.group(1), rest[m.end():]
+        tok, rest = m.group(1), rest[m.end() :]
         if _MARK.match(rest):  # adjacent: "(a)(1)"
             out.append((tok, ""))
             continue
         h = _DASH_HEADING.match(rest) or _DOT_HEADING.match(rest)
         if h:
             out.append((tok, h.group(1).strip()))
-            rest = rest[h.end():]
+            rest = rest[h.end() :]
             continue
         out.append((tok, rest.strip()))
         return out
@@ -107,8 +107,10 @@ def parse_part(xml: bytes, strict: bool = False) -> dict[str, str]:
                 continue
             italic = _italic_flags(ps[idx], marks)
             for j, (tok, own) in enumerate(marks):
-                nxt = marks[j + 1][0] if j + 1 < len(marks) else (
-                    firsts[idx + 1] if idx + 1 < len(firsts) else None
+                nxt = (
+                    marks[j + 1][0]
+                    if j + 1 < len(marks)
+                    else (firsts[idx + 1] if idx + 1 < len(firsts) else None)
                 )
                 lvl = _level(tok, stack, nxt, italic[j])
                 stack[lvl - 1] = tok
@@ -156,3 +158,14 @@ def load_reg_e() -> dict:
 def reg_text(cite: str) -> str | None:
     key = cite.removeprefix("12 CFR").strip()
     return load_reg_e()["paragraphs"].get(key)
+
+
+def reg_text_with_children(cite: str) -> str | None:
+    """The paragraph plus its sub-paragraphs, each prefixed with its id."""
+    key = cite.removeprefix("12 CFR").strip()
+    paras = load_reg_e()["paragraphs"]
+    if key not in paras:
+        return None
+    lines = [paras[key]]
+    lines += [f"{k[len(key) :]} {v}" for k, v in paras.items() if k.startswith(key + "(")]
+    return "\n  ".join(lines)

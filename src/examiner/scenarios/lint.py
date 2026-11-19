@@ -1,14 +1,14 @@
 """Citation lint: every citation must resolve to real text."""
 
 from examiner.meridian.bank import load_fee_schedule
-from examiner.regs.ecfr import reg_text
+from examiner.regs.ecfr import reg_text, reg_text_with_children
 from examiner.scenarios.schema import Scenario, load_pack
 
 
-def cited_text(cite: str) -> str | None:
-    """The regulation paragraph or fee-schedule entry a citation points at."""
+def cited_text(cite: str, children: bool = False) -> str | None:
+    """The regulation paragraph (optionally with sub-paragraphs) or fee entry a citation names."""
     if cite.startswith("12 CFR "):
-        return reg_text(cite)
+        return reg_text_with_children(cite) if children else reg_text(cite)
     if cite.startswith("fee:"):
         entry = load_fee_schedule().get(cite.removeprefix("fee:"))
         return None if entry is None else str(entry)

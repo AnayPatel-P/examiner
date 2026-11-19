@@ -40,11 +40,12 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
                         raise ValueError("empty reply")
                 except (httpx.HTTPError, KeyError, ValueError) as e:
                     raise RuntimeError(f"target error: {type(e).__name__}: {e}") from e
-                if usage is not None and isinstance(turn_usage, dict):
+                counts = turn_usage if isinstance(turn_usage, dict) else {}
+                if usage is not None and all(isinstance(counts.get(k), int) for k in usage):
                     for k in usage:
-                        usage[k] += int(turn_usage.get(k, 0))
+                        usage[k] += counts[k]
                 else:
-                    usage = None
+                    usage = None  # missing or malformed usage from the target: cost unknown
                 state.messages.append(ChatMessageAssistant(content=reply))
         state.metadata["target_usage"] = usage
         state.output = ModelOutput.from_content(f"meridian/{variant}", reply)

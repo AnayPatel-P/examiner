@@ -52,7 +52,7 @@ JUDGE_VERSION = RUBRICS["factual"].version
 def rules_block(citations: list[str]) -> str:
     from examiner.scenarios.lint import cited_text
 
-    return "\n".join(f"- {display_citation(c)}: {cited_text(c)}" for c in citations)
+    return "\n".join(f"- {display_citation(c)}: {cited_text(c, children=True)}" for c in citations)
 
 
 def key_facts_block(scenario: dict) -> str:

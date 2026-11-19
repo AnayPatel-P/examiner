@@ -79,3 +79,12 @@ def test_summary_by_area():
     assert table["fees"]["disclosure"] == (0, 0)
     assert table["reg_e"]["fact"] == (1, 1)
     assert table["reg_e"]["errors"] == 1
+
+
+def test_null_usage_values_do_not_crash(bot, tmp_path: Path):
+    url, srv = bot
+    srv.usage = {"input_tokens": None, "output_tokens": 5}
+    log = run_smoke(url, tmp_path, "fees-nsf")
+    [sample] = log.samples or []
+    assert sample.error is None
+    assert sample.metadata["target_usage"] is None

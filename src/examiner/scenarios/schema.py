@@ -6,6 +6,9 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, Field
 
+RUBRIC_NAMES = ("factual", "disclosure", "commitments")
+Rubric = Literal["factual", "disclosure", "commitments"]
+
 PACKS_DIR = Path(__file__).resolve().parents[3] / "packs"
 
 
@@ -29,7 +32,7 @@ class Scenario(BaseModel):
     turns: list[str] = Field(min_length=1)
     must_say: list[Fact]
     must_not_say: list[Fact]
-    rubrics: list[str] = Field(default_factory=lambda: ["factual"])
+    rubrics: list[Rubric] = Field(default_factory=lambda: ["factual"])
     citations: list[str] = Field(min_length=1)
     source_note: str
     seed_id: str | None = None
