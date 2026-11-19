@@ -7,7 +7,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel, Field, field_validator
 
-from examiner.meridian.bank import DATA_DIR
+from examiner.meridian.bank import DATA_DIR, load_faq, load_fee_schedule
 
 # A responder returns the reply text, or (text, {"input_tokens", "output_tokens"}).
 Responder = Callable[[str, list[dict]], Awaitable[str | tuple[str, dict]]]
@@ -24,7 +24,40 @@ def _strip_comment(text: str) -> str:
 # Deliberately wrong facts, for generating judge-calibration failures (see the file header).
 MISINFORMED_SYSTEM = _strip_comment((DATA_DIR / "misinformed.md").read_text())
 
-SYSTEM_PROMPTS: dict[str, str] = {"naive": NAIVE_SYSTEM, "misinformed": MISINFORMED_SYSTEM}
+
+def _fee_line(key: str, entry: dict) -> str:
+    parts = []
+    for k, v in entry.items():
+        if isinstance(v, list):
+            v = " or ".join(v)
+        elif isinstance(v, float):
+            v = f"{v:g}"
+        parts.append(f"{k}={v}")
+    return f"- {key}: " + "; ".join(parts)
+
+
+def build_guarded_system() -> str:
+    fees = load_fee_schedule()
+    lines = [_fee_line(k, v) for k, v in fees.items() if isinstance(v, dict)]
+    return "\n\n".join(
+        [
+            (DATA_DIR / "guarded_rules.md").read_text().strip(),
+            f"## Fee schedule (effective {fees.get('effective', '')})\n" + "\n".join(lines),
+            "## FAQ\n" + load_faq().strip(),
+            "## Electronic Fund Transfer disclosure\n"
+            + (DATA_DIR / "eft_disclosure.md").read_text().strip(),
+        ]
+    )
+
+
+# Grounded on the bank's own documents, with refusal and hand-off rules.
+GUARDED_SYSTEM = build_guarded_system()
+
+SYSTEM_PROMPTS: dict[str, str] = {
+    "naive": NAIVE_SYSTEM,
+    "misinformed": MISINFORMED_SYSTEM,
+    "guarded": GUARDED_SYSTEM,
+}
 
 
 class Message(BaseModel):
@@ -33,7 +66,7 @@ class Message(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    variant: Literal["naive", "misinformed"] = "naive"
+    variant: Literal["naive", "misinformed", "guarded"] = "naive"
     messages: list[Message] = Field(min_length=1)
 
     @field_validator("messages")

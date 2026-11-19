@@ -96,3 +96,47 @@ def test_anthropic_responder_leaves_room_for_thinking():
 
     src = inspect.getsource(app_module.anthropic_responder)
     assert "max_tokens=4000" in src and '"effort": "low"' in src
+
+
+def _amounts(entry: dict) -> list[str]:
+    out = []
+    for k, v in entry.items():
+        if isinstance(v, int | float) and not isinstance(v, bool) and k != "max_items_per_day":
+            out.append(f"{v:g}")
+    return out
+
+
+def test_guarded_variant_accepted():
+    fake = FakeResponder()
+    r = client(fake).post(
+        "/chat", json={"variant": "guarded", "messages": [{"role": "user", "content": "hi"}]}
+    )
+    assert r.status_code == 200 and r.json()["variant"] == "guarded"
+    assert "## Fee schedule" in fake.calls[0][0]
+
+
+def test_guarded_prompt_has_every_fee_key():
+    from examiner.meridian.app import GUARDED_SYSTEM
+
+    for key, entry in load_fee_schedule().items():
+        if not isinstance(entry, dict):
+            continue
+        assert key in GUARDED_SYSTEM, key
+        for amount in _amounts(entry):
+            assert amount in GUARDED_SYSTEM, (key, amount)
+    assert "within 10 business days" in GUARDED_SYSTEM  # FAQ included
+
+
+def test_guarded_prompt_has_rules():
+    from examiner.meridian.app import GUARDED_SYSTEM
+
+    low = GUARDED_SYSTEM.lower()
+    assert "don't know" in low and "never promise" in low
+    assert "cannot see or change" in low
+
+
+def test_misinformed_and_guarded_differ():
+    from examiner.meridian.app import GUARDED_SYSTEM, MISINFORMED_SYSTEM, NAIVE_SYSTEM
+
+    assert len({GUARDED_SYSTEM, MISINFORMED_SYSTEM, NAIVE_SYSTEM}) == 3
+    assert "$35" not in GUARDED_SYSTEM
