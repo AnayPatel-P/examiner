@@ -23,16 +23,16 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 ## Phase 2 — Scenario pack v1
 **Goal:** the real content: ~120 scenarios with ground truth and citations.
 **Demo:** a generated scenario index (Markdown) and a full naive run's pass rate by area.
-- [ ] 2.1 Reg E seeds (~30): unauthorized transfers, error-resolution timelines, provisional credit, notice periods; each with 12 CFR 1005 citations
-- [ ] 2.2 Fees/overdraft seeds (~30) grounded in the Meridian fee schedule
-- [ ] 2.3 Variant generator (paraphrase + persona), stable ids, dedupe
-- [ ] 2.4 Schema tests + citation lint (every scenario has a valid citation and source note)
-- [ ] 2.5 Full rubric set: factual accuracy, required disclosure, no invented commitments
-- [ ] 2.7 Seeded-error transcripts for calibration (both classes; spike D12)
-- [ ] 2.6 Budget cap, concurrency, retries, prompt caching; cost tracked per run
+- [x] 2.1 Reg E seeds (~30): unauthorized transfers, error-resolution timelines, provisional credit, notice periods; each with 12 CFR 1005 citations
+- [x] 2.2 Fees/overdraft seeds (~30) grounded in the Meridian fee schedule
+- [x] 2.3 Variant generator (paraphrase + persona), stable ids, dedupe
+- [x] 2.4 Schema tests + citation lint (every scenario has a valid citation and source note)
+- [x] 2.5 Full rubric set: factual accuracy, required disclosure, no invented commitments
+- [x] 2.7 Seeded-error transcripts for calibration (both classes; spike D12)
+- [x] 2.6 Budget cap, concurrency, retries, prompt caching; cost tracked per run
 **Done when:**
-- [ ] `--pack v1` runs ~120 scenarios in < 10 min for ≤ $5
-- [ ] Every failure stores the citation it breaks
+- [x] `--pack v1` runs ~120 scenarios in < 10 min for ≤ $5 (127 in 211 s, $2.02)
+- [x] Every failure stores the citation it breaks
 
 ## Phase 3 — Guarded bot + API
 **Goal:** the before/after story and the backend the dashboard needs.
