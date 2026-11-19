@@ -1,0 +1,18 @@
+id: rege-018
+area: reg_e
+persona: customer disputing a charge from abroad
+turns:
+- I'm disputing a debit card charge from my trip to Spain. How long does the bank have to investigate?
+must_say:
+- id: ninety
+  any_of:
+  - 90 days
+  - ninety days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(3)(ii)(A)
+source_note: Transfers not initiated within a state get up to 90 days (instead of 45).

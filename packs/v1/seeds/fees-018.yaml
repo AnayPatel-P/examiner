@@ -1,0 +1,19 @@
+id: fees-018
+area: fees
+persona: customer supporting family abroad
+turns:
+- What's the fee to wire money to Mexico?
+must_say:
+- id: intl-45
+  any_of:
+  - $45
+  - 45 dollars
+  - forty-five dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_international_outgoing
+source_note: 'Outgoing international wire: $45.'

@@ -1,0 +1,19 @@
+id: fees-007
+area: fees
+persona: customer with a linked savings account
+turns:
+- How much does an overdraft protection transfer from my savings cost?
+must_say:
+- id: opt-12
+  any_of:
+  - $12
+  - 12 dollars
+  - twelve dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft_protection_transfer
+source_note: Overdraft protection transfer from linked savings costs $12.

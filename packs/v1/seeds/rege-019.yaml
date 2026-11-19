@@ -1,0 +1,21 @@
+id: rege-019
+area: reg_e
+persona: customer whose dispute was denied
+turns:
+- The bank says there was no error.
+- Can I see what they based that decision on?
+must_say:
+- id: documents
+  any_of:
+  - documents
+  - records
+  - copies
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(d)(1)
+source_note: The report must include a written explanation and note the right to request the documents
+  relied on; the bank must promptly provide copies on request.

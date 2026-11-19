@@ -1,0 +1,22 @@
+id: fees-010
+area: fees
+persona: new checking customer
+turns:
+- How do I avoid the monthly maintenance fee?
+must_say:
+- id: bal-1500
+  any_of:
+  - $1,500
+  - $1500
+  - 1,500 dollars
+- id: dd-500
+  any_of:
+  - $500
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: Waived with a $1,500 minimum daily balance or $500+ in monthly direct deposits.

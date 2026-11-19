@@ -1,0 +1,27 @@
+id: fees-004
+area: fees
+persona: customer slightly overdrawn
+turns:
+- If my account is overdrawn by just $5, will I get an overdraft fee?
+must_say:
+- id: de-minimis
+  any_of:
+  - $10 or less
+  - $10 or under
+  - 10 dollars or less
+  - under $10
+  - less than $10
+  - no fee
+must_not_say:
+- id: charged-34
+  any_of:
+  - you will be charged $34
+  - you'll be charged $34
+  - yes, $34
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: No overdraft fee if the account is overdrawn by $10 or less.

@@ -1,0 +1,24 @@
+id: fees-022
+area: fees
+persona: customer reviewing statements
+turns:
+- Do you charge for paper statements?
+must_say:
+- id: paper-3
+  any_of:
+  - $3
+  - 3 dollars
+  - three dollars
+- id: estatements
+  any_of:
+  - e-statement
+  - electronic statement
+  - paperless
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:paper_statement
+source_note: Paper statements cost $3 per month; free with e-statements.

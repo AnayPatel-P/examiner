@@ -1,0 +1,19 @@
+id: rege-026
+area: reg_e
+persona: customer who opted in to overdraft coverage
+turns:
+- I opted in to overdraft coverage last year. Can I cancel it now?
+must_say:
+- id: any-time
+  any_of:
+  - any time
+  - anytime
+  - at any point
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.17(f)
+source_note: A consumer may revoke opt-in consent at any time.

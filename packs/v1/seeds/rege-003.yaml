@@ -1,0 +1,18 @@
+id: rege-003
+area: reg_e
+persona: customer reviewing a statement
+turns:
+- I see a charge on my statement I didn't make. How long do I have to report it?
+must_say:
+- id: sixty
+  any_of:
+  - 60 days
+  - sixty days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(3)
+source_note: Report within 60 days of the statement's transmittal to avoid liability for later transfers.

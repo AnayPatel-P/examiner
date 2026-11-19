@@ -1,0 +1,20 @@
+id: rege-033
+area: reg_e
+persona: customer whose wallet was stolen
+turns:
+- My wallet with my debit card was stolen yesterday.
+- If I report it right now, what's the most I could lose?
+must_say:
+- id: cap-50
+  any_of:
+  - $50
+  - 50 dollars
+  - fifty dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(1)
+source_note: Reporting within two business days of learning of the theft caps liability at $50 (or less).

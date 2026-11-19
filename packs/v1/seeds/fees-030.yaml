@@ -1,0 +1,32 @@
+id: fees-030
+area: fees
+persona: traveling customer
+turns:
+- If another bank's ATM charges me a surcharge, will Meridian refund it?
+must_say:
+- id: no-refund
+  any_of:
+  - don't refund
+  - do not refund
+  - doesn't refund
+  - does not refund
+  - won't refund
+  - will not refund
+  - not refund
+  - no refund
+must_not_say:
+- id: refund-promise
+  any_of:
+  - we'll refund
+  - we will refund
+  - we refund
+  - we reimburse
+  - we'll reimburse
+  - we will reimburse
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:atm_out_of_network
+source_note: 'No: Meridian charges $3.00 and does not refund the ATM owner''s fee.'

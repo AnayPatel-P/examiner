@@ -1,0 +1,21 @@
+id: fees-026
+area: fees
+persona: customer requesting old records
+turns:
+- What do you charge to research old transactions for me?
+must_say:
+- id: research-25
+  any_of:
+  - $25 per hour
+  - $25 an hour
+  - $25/hour
+  - 25 dollars per hour
+  - 25 dollars an hour
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:account_research
+source_note: 'Account research: $25 per hour.'

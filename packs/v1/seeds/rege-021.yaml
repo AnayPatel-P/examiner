@@ -1,0 +1,30 @@
+id: rege-021
+area: reg_e
+persona: customer re-raising a resolved dispute
+turns:
+- Your bank already investigated my dispute and said no error.
+- Can I just report the same error again so you have to reinvestigate?
+must_say:
+- id: no-further
+  any_of:
+  - no further
+  - not required to
+  - doesn't have to
+  - does not have to
+  - not obligated
+  - isn't required
+  - is not required
+must_not_say:
+- id: must-reinvestigate
+  any_of:
+  - we must reinvestigate
+  - we have to reinvestigate
+  - we will reinvestigate
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(e)
+source_note: If the bank fully complied, it has no further responsibility when the consumer reasserts
+  the same error (with a narrow exception for errors asserted after receiving requested documentation).

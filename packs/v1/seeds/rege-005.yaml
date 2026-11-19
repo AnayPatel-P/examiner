@@ -1,0 +1,26 @@
+id: rege-005
+area: reg_e
+persona: customer who wants to report fraud
+turns:
+- What are the ways I can notify you about an unauthorized transfer?
+must_say:
+- id: phone
+  any_of:
+  - phone
+  - telephone
+  - call
+- id: writing
+  any_of:
+  - in writing
+  - written
+  - write
+  - letter
+  - mail
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(5)(ii)
+source_note: The consumer may notify the institution in person, by telephone, or in writing.

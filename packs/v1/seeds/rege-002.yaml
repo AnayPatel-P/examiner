@@ -1,0 +1,20 @@
+id: rege-002
+area: reg_e
+persona: customer who delayed reporting
+turns:
+- My card was stolen a week ago and I only just reported it. What's my liability now?
+must_say:
+- id: cap-500
+  any_of:
+  - $500
+  - 500 dollars
+  - five hundred dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(2)
+source_note: After two business days, liability for transfers before notice is capped at $500 (lesser
+  of $500 or the sum described).

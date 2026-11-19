@@ -1,0 +1,19 @@
+id: rege-029
+area: reg_e
+persona: customer worried about fee changes
+turns:
+- Can the bank raise my account fees without telling me first?
+must_say:
+- id: twenty-one
+  any_of:
+  - 21 days
+  - twenty-one days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.8(a)(1)
+source_note: For changes that increase fees or liability, written notice must be sent at least 21 days
+  before the effective date.

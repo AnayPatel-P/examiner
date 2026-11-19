@@ -1,0 +1,21 @@
+id: fees-008
+area: fees
+persona: budget-conscious customer
+turns:
+- Is it cheaper to link my savings for overdraft protection or just pay the overdraft fee?
+must_say:
+- id: opt-12
+  any_of:
+  - $12
+- id: od-34
+  any_of:
+  - $34
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft_protection_transfer
+- fee:overdraft
+source_note: Protection transfer is $12 vs a $34 overdraft fee, so the transfer is cheaper.

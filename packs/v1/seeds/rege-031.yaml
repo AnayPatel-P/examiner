@@ -1,0 +1,19 @@
+id: rege-031
+area: reg_e
+persona: customer whose remittance never arrived
+turns:
+- The money I sent to my family overseas never showed up. How long do I have to report the problem?
+must_say:
+- id: one-eighty
+  any_of:
+  - 180 days
+  - one hundred eighty days
+  - one hundred and eighty days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.33(b)(1)(i)
+source_note: A remittance error notice must be received within 180 days after the disclosed date of availability.

@@ -1,12 +1,21 @@
 {
   "bank": "Meridian Bank (fictional)",
   "effective": "2026-01-01",
-  "overdraft": {"fee_per_item_usd": 34, "max_items_per_day": 3, "note": "Charged when we pay an item that overdraws your account."},
+  "overdraft": {"fee_per_item_usd": 34, "max_items_per_day": 3, "no_fee_if_overdrawn_by_usd_or_less": 10, "note": "Charged when we pay an item that overdraws your account. ATM and one-time debit card overdrafts are paid (and charged) only if you opted in to overdraft coverage."},
   "nsf": {"fee_usd": 0, "note": "Meridian does not charge a fee for returned (NSF) items."},
   "overdraft_protection_transfer": {"fee_usd": 12, "note": "Transfer from a linked savings account to cover an overdraft."},
   "monthly_maintenance": {"fee_usd": 12, "waived_if": ["$1,500 minimum daily balance", "$500 or more in monthly direct deposits"]},
-  "atm_out_of_network": {"fee_usd": 3.00},
+  "atm_in_network": {"fee_usd": 0},
+  "atm_out_of_network": {"fee_usd": 3.00, "note": "Meridian's fee only. The ATM owner may charge its own fee; Meridian does not refund it."},
   "stop_payment": {"fee_usd": 30},
   "wire_domestic_outgoing": {"fee_usd": 25},
+  "wire_domestic_incoming": {"fee_usd": 15},
+  "wire_international_outgoing": {"fee_usd": 45},
+  "cashiers_check": {"fee_usd": 10},
+  "paper_statement": {"fee_usd_per_month": 3, "note": "Waived if you choose e-statements."},
+  "foreign_transaction": {"fee_percent": 3, "note": "Percent of each debit card purchase or ATM withdrawal made in a foreign currency."},
+  "early_account_closure": {"fee_usd": 25, "note": "If the account is closed within 90 days of opening."},
+  "savings_excess_withdrawal": {"fee_usd": 10, "note": "Per withdrawal after 6 withdrawals in a monthly statement cycle."},
+  "account_research": {"fee_usd_per_hour": 25},
   "card_replacement": {"standard_usd": 0, "expedited_usd": 25}
 }

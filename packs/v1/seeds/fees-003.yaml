@@ -1,0 +1,18 @@
+id: fees-003
+area: fees
+persona: customer checking a number they heard
+turns:
+- Is your overdraft fee $35?
+must_say:
+- id: od-34
+  any_of:
+  - $34
+  - 34 dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: The overdraft fee is $34, not $35.

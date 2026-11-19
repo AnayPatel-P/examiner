@@ -1,0 +1,33 @@
+id: fees-006
+area: fees
+persona: customer whose check bounced
+turns:
+- A check I wrote last week bounced.
+- How much is that going to cost me?
+must_say:
+- id: no-fee
+  any_of:
+  - no fee
+  - no charge
+  - $0
+  - nothing
+  - don't charge
+  - do not charge
+  - doesn't charge
+  - does not charge
+  - won't be charged
+  - will not be charged
+must_not_say:
+- id: nsf-35
+  any_of:
+  - $35
+- id: nsf-34
+  any_of:
+  - $34
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:nsf
+source_note: Meridian charges $0 for a returned (NSF) item.

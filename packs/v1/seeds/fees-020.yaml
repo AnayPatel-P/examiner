@@ -1,0 +1,19 @@
+id: fees-020
+area: fees
+persona: customer leaving on a trip
+turns:
+- I need my replacement card fast. How much is expedited shipping?
+must_say:
+- id: exp-25
+  any_of:
+  - $25
+  - 25 dollars
+  - twenty-five dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:card_replacement
+source_note: 'Expedited card replacement: $25.'

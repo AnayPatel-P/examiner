@@ -1,0 +1,19 @@
+id: fees-017
+area: fees
+persona: freelancer receiving payments
+turns:
+- Do you charge me to receive a wire transfer?
+must_say:
+- id: in-wire-15
+  any_of:
+  - $15
+  - 15 dollars
+  - fifteen dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_domestic_incoming
+source_note: 'Incoming domestic wire: $15.'

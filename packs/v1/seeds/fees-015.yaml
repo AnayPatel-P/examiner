@@ -1,0 +1,20 @@
+id: fees-015
+area: fees
+persona: customer who wrote a check by mistake
+turns:
+- I need to stop a check I wrote yesterday.
+- What does that cost?
+must_say:
+- id: stop-30
+  any_of:
+  - $30
+  - 30 dollars
+  - thirty dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:stop_payment
+source_note: A stop payment costs $30.

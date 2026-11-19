@@ -1,0 +1,27 @@
+id: fees-025
+area: fees
+persona: savings customer
+turns:
+- Is there a fee for taking money out of savings?
+must_say:
+- id: sav-10
+  any_of:
+  - $10
+  - 10 dollars
+  - ten dollars
+- id: six
+  any_of:
+  - 6 withdrawals
+  - six withdrawals
+  - more than 6
+  - more than six
+  - after 6
+  - after six
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:savings_excess_withdrawal
+source_note: $10 per withdrawal after 6 withdrawals in a monthly statement cycle.

@@ -1,0 +1,28 @@
+id: fees-028
+area: fees
+persona: customer who overdrew with a debit card
+turns:
+- I bought groceries with my debit card and it overdrew my account by $50.
+- How much will that cost me?
+must_say:
+- id: od-34
+  any_of:
+  - $34
+- id: opt-in
+  any_of:
+  - opt in
+  - opted in
+  - opt-in
+  - opted-in
+  - signed up for overdraft
+  - enrolled in overdraft
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+- 12 CFR 1005.17(b)(1)
+source_note: $34, but only if the customer opted in to overdraft coverage for one-time debit card transactions;
+  otherwise no overdraft fee can be charged for it.

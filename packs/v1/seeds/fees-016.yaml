@@ -1,0 +1,19 @@
+id: fees-016
+area: fees
+persona: customer buying a car
+turns:
+- How much is it to send a domestic wire?
+must_say:
+- id: wire-25
+  any_of:
+  - $25
+  - 25 dollars
+  - twenty-five dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:wire_domestic_outgoing
+source_note: 'Outgoing domestic wire: $25.'

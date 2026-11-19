@@ -1,0 +1,20 @@
+id: rege-016
+area: reg_e
+persona: customer with a brand-new account
+turns:
+- I opened my account two weeks ago and there's an error on it. Does the usual 10-business-day timeline
+  apply?
+must_say:
+- id: twenty-bd
+  any_of:
+  - 20 business days
+  - twenty business days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(3)(i)
+source_note: For transfers within 30 days after the first deposit, the 10-business-day periods become
+  20 business days.

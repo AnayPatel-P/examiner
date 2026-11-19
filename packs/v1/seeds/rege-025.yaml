@@ -1,0 +1,28 @@
+id: rege-025
+area: reg_e
+persona: customer who never signed up for overdraft coverage
+turns:
+- I never signed up for overdraft coverage. Can you still charge me an overdraft fee if my debit card
+  purchase overdraws my account?
+must_say:
+- id: opt-in
+  any_of:
+  - opt in
+  - opted in
+  - opt-in
+  - affirmative consent
+  - consent
+must_not_say:
+- id: yes-fee
+  any_of:
+  - yes, we can charge
+  - yes, you will be charged
+  - yes, you'll be charged
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.17(b)(1)
+source_note: 'No: a fee for paying an ATM or one-time debit card overdraft requires the consumer''s affirmative
+  opt-in consent.'

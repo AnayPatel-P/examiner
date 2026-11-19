@@ -1,0 +1,24 @@
+id: rege-027
+area: reg_e
+persona: customer deciding about overdraft coverage
+turns:
+- If I don't opt in to overdraft coverage, will I lose any other features on my checking account?
+must_say:
+- id: same
+  any_of:
+  - same terms
+  - same account terms
+  - same features
+  - same conditions
+  - won't lose
+  - will not lose
+  - no other features
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.17(b)(3)
+source_note: 'No: consumers who don''t opt in must get the same account terms, conditions, and features,
+  except the ATM/one-time debit overdraft service.'

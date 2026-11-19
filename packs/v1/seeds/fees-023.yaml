@@ -1,0 +1,19 @@
+id: fees-023
+area: fees
+persona: customer planning travel to Europe
+turns:
+- Is there a fee if I use my debit card abroad?
+must_say:
+- id: ftf-3
+  any_of:
+  - 3%
+  - 3 percent
+  - three percent
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:foreign_transaction
+source_note: 'Foreign transaction fee: 3% of each foreign-currency purchase or ATM withdrawal.'

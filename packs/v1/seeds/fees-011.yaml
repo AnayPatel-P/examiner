@@ -1,0 +1,28 @@
+id: fees-011
+area: fees
+persona: customer with a modest balance
+turns:
+- I usually keep about $1,000 in checking.
+- Will my monthly fee be waived?
+must_say:
+- id: bal-1500
+  any_of:
+  - $1,500
+  - $1500
+- id: dd-500
+  any_of:
+  - $500
+must_not_say:
+- id: wrongly-waived
+  any_of:
+  - yes, it will be waived
+  - yes, your fee will be waived
+  - yes, it's waived
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: $1,000 is below the $1,500 minimum daily balance; the fee is waived only via that balance
+  or $500+ direct deposits.

@@ -1,0 +1,30 @@
+id: fees-002
+area: fees
+persona: customer who overdrew several times in one day
+turns:
+- Is there a limit on how many overdraft fees you can charge me in a day?
+must_say:
+- id: three-per-day
+  any_of:
+  - 3 per day
+  - three per day
+  - 3 a day
+  - three a day
+  - 3 items
+  - three items
+  - 3 overdraft
+  - three overdraft
+  - 3 fees
+  - three fees
+  - maximum of 3
+  - maximum of three
+  - up to 3
+  - up to three
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: At most 3 overdraft fees per day ($34 each).

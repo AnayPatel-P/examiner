@@ -1,0 +1,19 @@
+id: fees-021
+area: fees
+persona: customer closing on a house
+turns:
+- How much is a cashier's check?
+must_say:
+- id: cc-10
+  any_of:
+  - $10
+  - 10 dollars
+  - ten dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:cashiers_check
+source_note: 'Cashier''s check: $10.'

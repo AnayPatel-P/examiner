@@ -1,0 +1,19 @@
+id: rege-010
+area: reg_e
+persona: customer with a confirmed error
+turns:
+- If you find that there really was an error, how fast do you have to fix it?
+must_say:
+- id: one-bd
+  any_of:
+  - 1 business day
+  - one business day
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(1)
+- 12 CFR 1005.11(c)(2)(iii)
+source_note: The bank must correct the error within one business day after determining that an error occurred.

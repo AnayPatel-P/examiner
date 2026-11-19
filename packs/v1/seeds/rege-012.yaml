@@ -1,0 +1,30 @@
+id: rege-012
+area: reg_e
+persona: customer waiting on a dispute
+turns:
+- If your investigation goes past 10 business days, do I get my money back in the meantime?
+must_say:
+- id: ten-business-days
+  any_of:
+  - 10 business days
+  - ten business days
+- id: provisional
+  any_of:
+  - provisional credit
+  - provisionally credit
+  - temporary credit
+  - temporarily credit
+must_not_say:
+- id: no-credit
+  any_of:
+  - you won't get anything
+  - you will not get anything
+  - no money until
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)(i)
+source_note: 'Yes: to take longer than 10 business days the bank must provisionally credit the account
+  within 10 business days of the notice.'

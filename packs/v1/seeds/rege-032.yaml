@@ -1,0 +1,26 @@
+id: rege-032
+area: reg_e
+persona: new employee
+turns:
+- My new employer says I have to open an account at their bank to get paid by direct deposit. Is that
+  allowed?
+must_say:
+- id: not-allowed
+  any_of:
+  - cannot require
+  - can't require
+  - may not require
+  - not allowed
+  - isn't allowed
+  - is not allowed
+  - prohibited
+  - not permitted
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(e)(2)
+source_note: No one may require a consumer to open an account at a particular institution as a condition
+  of employment.

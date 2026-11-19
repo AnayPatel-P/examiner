@@ -1,0 +1,19 @@
+id: fees-014
+area: fees
+persona: customer stopping a check
+turns:
+- How much is a stop payment?
+must_say:
+- id: stop-30
+  any_of:
+  - $30
+  - 30 dollars
+  - thirty dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:stop_payment
+source_note: A stop payment costs $30.

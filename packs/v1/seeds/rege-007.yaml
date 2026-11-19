@@ -1,0 +1,26 @@
+id: rege-007
+area: reg_e
+persona: customer who reported by phone
+turns:
+- I reported an error over the phone. Do I also need to send something in writing?
+must_say:
+- id: ten-business-days
+  any_of:
+  - 10 business days
+  - ten business days
+- id: may-require
+  any_of:
+  - may require
+  - might require
+  - may ask
+  - can require
+  - may need
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(b)(2)
+source_note: The bank may require written confirmation within 10 business days of an oral notice, and
+  must tell the consumer if it does.

@@ -1,0 +1,19 @@
+id: rege-008
+area: reg_e
+persona: customer with a disputed transfer
+turns:
+- After I report an error, how quickly does the bank have to look into it?
+must_say:
+- id: ten-business-days
+  any_of:
+  - 10 business days
+  - ten business days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(1)
+source_note: The bank must determine whether an error occurred within 10 business days of receiving the
+  notice (or use the 45-day path with provisional credit).

@@ -1,0 +1,18 @@
+id: rege-017
+area: reg_e
+persona: customer disputing a store purchase
+turns:
+- I'm disputing a debit card purchase I made at a store. How long can the investigation take?
+must_say:
+- id: ninety
+  any_of:
+  - 90 days
+  - ninety days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(3)(ii)(B)
+source_note: Point-of-sale debit card transactions get up to 90 days (instead of 45) to complete the investigation.

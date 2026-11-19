@@ -1,0 +1,24 @@
+id: rege-014
+area: reg_e
+persona: customer with a provisional credit
+turns:
+- Can I actually spend the provisional credit while you're still investigating?
+must_say:
+- id: full-use
+  any_of:
+  - full use
+  - use of the funds
+  - use the funds
+  - use the money
+  - can spend
+  - you can use
+  - able to use
+  - free to use
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)(ii)
+source_note: 'Yes: the bank must give the consumer full use of the funds during the investigation.'

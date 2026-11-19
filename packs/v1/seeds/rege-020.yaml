@@ -1,0 +1,20 @@
+id: rege-020
+area: reg_e
+persona: customer whose provisional credit is being reversed
+turns:
+- You're taking back the provisional credit after your investigation. What if I've already written checks
+  against that money?
+must_say:
+- id: five-bd
+  any_of:
+  - 5 business days
+  - five business days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(d)(2)(ii)
+source_note: The bank must honor checks and preauthorized transfers (without overdraft charges) for five
+  business days after notifying the consumer of the debit.

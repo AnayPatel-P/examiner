@@ -1,0 +1,28 @@
+id: rege-004
+area: reg_e
+persona: customer who was hospitalized
+turns:
+- I was in the hospital for three months and missed an unauthorized charge on my statements. Is it too
+  late to report it?
+must_say:
+- id: extend
+  any_of:
+  - extenuating
+  - extend
+  - extension
+  - reasonable period
+must_not_say:
+- id: too-late
+  any_of:
+  - it's too late
+  - it is too late
+  - nothing we can do
+  - nothing can be done
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.6(b)(4)
+source_note: If the delay was due to extenuating circumstances such as hospitalization, the bank must
+  extend the time limits to a reasonable period.

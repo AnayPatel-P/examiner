@@ -1,0 +1,19 @@
+id: fees-009
+area: fees
+persona: new checking customer
+turns:
+- Is there a monthly fee on checking?
+must_say:
+- id: maint-12
+  any_of:
+  - $12
+  - 12 dollars
+  - twelve dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:monthly_maintenance
+source_note: Monthly maintenance fee is $12 (waivable).

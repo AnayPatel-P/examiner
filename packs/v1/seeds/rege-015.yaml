@@ -1,0 +1,26 @@
+id: rege-015
+area: reg_e
+persona: customer who reported by phone
+turns:
+- I reported an error by phone and the bank asked me to confirm it in writing.
+- I never sent the written confirmation. Do I still get a provisional credit?
+must_say:
+- id: written
+  any_of:
+  - written confirmation
+  - in writing
+must_not_say:
+- id: guaranteed-credit
+  any_of:
+  - you will definitely get
+  - you'll definitely get
+  - guaranteed
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.11(c)(2)(i)(A)
+- 12 CFR 1005.11(b)(2)
+source_note: If the bank required written confirmation and didn't receive it within 10 business days of
+  the oral notice, it need not provisionally credit the account (it must still investigate).

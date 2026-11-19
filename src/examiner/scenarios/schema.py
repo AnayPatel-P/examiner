@@ -41,7 +41,7 @@ class Scenario(BaseModel):
 
 def load_pack(name: str, root: Path = PACKS_DIR) -> list[Scenario]:
     pack_dir = root / name
-    files = sorted(pack_dir.glob("*.yaml"))
+    files = sorted(pack_dir.rglob("*.yaml"))
     if not files:
         raise ValueError(f"pack {name!r} not found or empty at {pack_dir}")
     scenarios = [Scenario.model_validate(yaml.safe_load(f.read_text())) for f in files]

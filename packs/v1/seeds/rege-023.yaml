@@ -1,0 +1,19 @@
+id: rege-023
+area: reg_e
+persona: customer who stopped a payment by phone
+turns:
+- I called to stop an automatic payment. Is a phone call enough?
+must_say:
+- id: fourteen
+  any_of:
+  - 14 days
+  - fourteen days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.10(c)(2)
+source_note: The bank may require written confirmation within 14 days; if required and not received, the
+  oral order stops being binding after 14 days.

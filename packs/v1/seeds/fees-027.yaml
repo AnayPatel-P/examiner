@@ -1,0 +1,20 @@
+id: fees-027
+area: fees
+persona: customer who overdrew repeatedly
+turns:
+- What's the most I could pay in overdraft fees in a single day?
+must_say:
+- id: max-102
+  any_of:
+  - $102
+  - 102 dollars
+  - one hundred two dollars
+  - one hundred and two dollars
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:overdraft
+source_note: 3 items × $34 = $102 maximum per day.

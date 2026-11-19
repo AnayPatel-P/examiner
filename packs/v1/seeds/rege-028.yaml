@@ -1,0 +1,27 @@
+id: rege-028
+area: reg_e
+persona: customer asking about statements
+turns:
+- How often are you required to send me account statements?
+must_say:
+- id: monthly
+  any_of:
+  - monthly
+  - each month
+  - every month
+  - each monthly
+- id: quarterly
+  any_of:
+  - quarterly
+  - every three months
+  - every 3 months
+  - once a quarter
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- 12 CFR 1005.9(b)
+source_note: Monthly for each cycle with an electronic transfer, and at least quarterly if there were
+  none.

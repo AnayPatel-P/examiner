@@ -1,0 +1,23 @@
+id: fees-024
+area: fees
+persona: customer unhappy with a new account
+turns:
+- I opened my account last month. Can I close it without a fee?
+must_say:
+- id: close-25
+  any_of:
+  - $25
+  - 25 dollars
+  - twenty-five dollars
+- id: ninety
+  any_of:
+  - 90 days
+  - ninety days
+must_not_say: []
+rubrics:
+- factual
+- disclosure
+- commitments
+citations:
+- fee:early_account_closure
+source_note: Closing within 90 days of opening costs $25.
