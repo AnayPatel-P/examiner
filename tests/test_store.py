@@ -10,13 +10,12 @@ from examiner.store import Store
 from tests.conftest import free_port
 
 
-def judged_log(url: str, log_dir: Path) -> EvalLog:
+def judged_log(
+    url: str, log_dir: Path, judge_text: str = '{"verdict":"pass","rationale":"ok"}'
+) -> EvalLog:
     grader = get_model(
         "mockllm/model",
-        custom_outputs=[
-            ModelOutput.from_content("mockllm/model", '{"verdict":"pass","rationale":"ok"}')
-        ]
-        * 5,
+        custom_outputs=[ModelOutput.from_content("mockllm/model", judge_text)] * 5,
     )
     [log] = inspect_eval(
         examiner_task(pack="smoke", target=url),
@@ -71,3 +70,12 @@ def test_index_records_error_samples(tmp_path: Path):
     [row] = store.results(store.index_log(log, target="t", variant="naive"))
     assert "target error" in row["error"]
     assert row["fact_pass"] is None and row["judge_pass"] is None
+
+
+def test_grader_failed_stored_as_no_verdict(bot, tmp_path: Path):
+    url, _ = bot
+    log = judged_log(url, tmp_path / "logs", judge_text="no json here")
+    store = Store(tmp_path / "x.db")
+    rows = store.results(store.index_log(log, target="t", variant="naive"))
+    assert all(r["judge_pass"] is None for r in rows)
+    assert all("grader_failed" in r["judge_rationale"] for r in rows)

@@ -90,3 +90,66 @@ def run(
     cost = run_row["cost_usd"] if run_row else None
     cost_s = f"${cost:.4f} (judge only)" if cost is not None else "n/a"
     typer.echo(f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · cost {cost_s}")
+
+
+LABEL_FIELDS = ["sample_id", "epoch", "citation", "source_note", "transcript", "human_pass"]
+
+
+@app.command("label-export")
+def label_export(
+    run: str = typer.Option(..., "--run", help="Run id to label."),
+    out: Path = typer.Option(Path("spike/labels.csv")),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Write a blind labeling sheet (no judge verdicts) for a run."""
+    import csv
+
+    from examiner.scenarios.schema import load_pack
+
+    store = Store(db)
+    run_row = store.run(run)
+    if run_row is None:
+        typer.echo(f"error: no run {run}", err=True)
+        raise typer.Exit(2)
+    notes = {s.id: s.source_note for s in load_pack(run_row["pack"])}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=LABEL_FIELDS)
+        w.writeheader()
+        for r in store.results(run):
+            if r["error"]:
+                continue
+            w.writerow(
+                {
+                    "sample_id": r["sample_id"],
+                    "epoch": r["epoch"],
+                    "citation": r["citation"],
+                    "source_note": notes.get(r["sample_id"], ""),
+                    "transcript": r["transcript"],
+                    "human_pass": "",
+                }
+            )
+    typer.echo(f"wrote {out}: fill human_pass with y/n, then run `examiner kappa`")
+
+
+@app.command()
+def kappa(
+    run: str = typer.Option(..., "--run"),
+    labels: Path = typer.Option(Path("spike/labels.csv")),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Compare the judge's verdicts with your labels."""
+    from examiner.calibration import agreement_report, read_labels
+
+    store = Store(db)
+    judge = {(r["sample_id"], r["epoch"]): r["judge_pass"] for r in store.results(run)}
+    judge = {k: (None if v is None else bool(v)) for k, v in judge.items()}
+    rep = agreement_report(judge, read_labels(labels))
+    typer.echo(
+        f"n={rep.n}  raw agreement={rep.raw_agreement:.2f}  kappa={rep.kappa:.2f}\n"
+        f"                 human pass  human fail\n"
+        f"judge pass       {rep.both_pass:>10}  {rep.judge_pass_human_fail:>10}\n"
+        f"judge fail       {rep.judge_fail_human_pass:>10}  {rep.both_fail:>10}"
+    )
+    for sid, ep in rep.disagreements:
+        typer.echo(f"disagree: {sid} (epoch {ep})")

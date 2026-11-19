@@ -60,6 +60,14 @@ class Store:
             if judge and judge.metadata:
                 judge_version = judge.metadata.get("judge_version", judge_version)
             citation = s.metadata.get("scenario", {}).get("citation")
+            judge_failed = bool(judge and judge.reason == "grader_failed")
+            if judge is None or judge_failed:
+                judge_pass = None
+            else:
+                judge_pass = _passed(judge.value)
+            rationale = judge.explanation if judge else None
+            if judge_failed:
+                rationale = f"grader_failed: {rationale}"
             rows.append(
                 (
                     run_id,
@@ -68,8 +76,8 @@ class Store:
                     transcript_text(s.messages),
                     _passed(fact.value) if fact else None,
                     json.dumps(fact.metadata) if fact else None,
-                    _passed(judge.value) if judge else None,
-                    (judge.explanation if judge else None),
+                    judge_pass,
+                    rationale,
                     citation,
                     s.error.message if s.error else None,
                 )

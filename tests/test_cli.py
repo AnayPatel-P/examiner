@@ -47,3 +47,43 @@ def test_cost_options_caps_priced_judge():
     assert opts["cost_limit"] == 0.5
     assert opts["model_cost_config"]["anthropic/claude-sonnet-5-5"].output == 10.0
     assert cost_options("mockllm/model", 0.5) == {}
+
+
+def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monkeypatch):
+    import csv
+
+    url, _ = bot
+    monkeypatch.chdir(tmp_path)
+    db = str(tmp_path / "e.db")
+    runner = CliRunner()
+    runner.invoke(
+        app,
+        ["run", "--target", url, "--judge-model", "mockllm/model", "--db", db],
+    )
+    store = Store(tmp_path / "e.db")
+    [run] = store.runs()
+    # mockllm's judge output is unparseable; give every result a verdict for the kappa step
+    with store.db:
+        store.db.execute("UPDATE result SET judge_pass = 1")
+    out = tmp_path / "labels.csv"
+    res = runner.invoke(app, ["label-export", "--run", run["id"], "--out", str(out), "--db", db])
+    assert res.exit_code == 0, res.output
+    rows = list(csv.DictReader(out.open()))
+    assert len(rows) == 5
+    assert set(rows[0]) == {
+        "sample_id",
+        "epoch",
+        "citation",
+        "source_note",
+        "transcript",
+        "human_pass",
+    }
+    for row in rows:
+        row["human_pass"] = "n"
+    with out.open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    res = runner.invoke(app, ["kappa", "--run", run["id"], "--labels", str(out), "--db", db])
+    assert res.exit_code == 0, res.output
+    assert "n=5" in res.output and "kappa" in res.output
