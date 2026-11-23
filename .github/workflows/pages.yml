@@ -1,9 +1,13 @@
 name: pages
 # Builds the read-only scorecard from the committed snapshot (web/public/data,
 # written by `examiner export`) and publishes it to GitHub Pages.
-# Manual for now; switch on `push: branches: [main]` once the repo is public.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/pages.yml"
 permissions:
   contents: read
   pages: write
