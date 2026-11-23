@@ -40,3 +40,17 @@ def test_coverage_shortfall_fails():
         {**cur(110, n=115), "total": 127}, BASE, floor=0.85, max_drop=0.04, min_coverage=0.95
     )
     assert not r.ok and any("scored" in m for m in r.reasons)
+
+
+def test_load_baseline_rejects_wrong_variant_or_empty(tmp_path):
+    import json
+
+    import pytest
+
+    from examiner.gate import load_baseline
+
+    for bad in ({**BASE, "variant": "naive"}, {**BASE, "n": 0}):
+        f = tmp_path / "b.json"
+        f.write_text(json.dumps(bad))
+        with pytest.raises(ValueError):
+            load_baseline(f)

@@ -36,7 +36,10 @@ export default function Label() {
     const p = state.pending
     if (!p) return
     api.postLabel(p).then(
-      () => dispatch({ type: 'saved', key: p }),
+      () => {
+        dispatch({ type: 'saved', key: p })
+        batches.reload()
+      },
       (e) => dispatch({ type: 'failed', key: p, message: e?.detail ?? String(e) }),
     )
   }, [state.pending])

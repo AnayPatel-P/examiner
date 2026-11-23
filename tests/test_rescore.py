@@ -45,3 +45,13 @@ def test_rescore_keeps_old_verdict_on_garbage(tmp_path: Path):
     rep = asyncio.run(rescore_run(store, "naive1", "factual", grader(*["no json"] * 10)))
     assert rep.rescored == 0 and len(rep.failed) == 3
     assert {r["passed"] for r in Store(tmp_path / "x.db").scores("naive1", "factual")} == {0, 1}
+
+
+def test_rescoring_twice_at_same_version_does_not_double_count(tmp_path: Path):
+    store = seeded(tmp_path / "x.db")
+    store.save_label("naive1", "fees-002", 1, "factual", False)
+    for _ in range(2):
+        asyncio.run(rescore_run(store, "naive1", "factual", grader(*[FAIL] * 10)))
+    version = RUBRICS["factual"].version
+    assert len(store.judged_with_labels("factual", judge_version=version)) == 1
+    assert len(store.judged_with_labels("factual", judge_version="factual-v1")) == 1

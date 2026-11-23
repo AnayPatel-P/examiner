@@ -267,6 +267,7 @@ def label_batch(
     runs: list[str] = typer.Option(None, "--run", help="Runs to draw from (default: all)."),
     per_rubric: int = typer.Option(34, min=1, help="Items per rubric."),
     seed: str = typer.Option("phase-5"),
+    force: bool = typer.Option(False, help="Replace a batch that already has labels."),
     db: Path = typer.Option(Path("examiner.db")),
 ) -> None:
     """Pick a mixed pass/fail calibration batch across runs, variants and rubrics."""
@@ -275,6 +276,14 @@ def label_batch(
     from examiner.batch import select_batch
 
     store = Store(db)
+    existing = {b["name"]: b for b in store.batches()}.get(name)
+    if existing and existing["labeled"] and not force:
+        typer.echo(
+            f"error: batch {name} already has {existing['labeled']} labels; "
+            "use another --name, or --force to replace it",
+            err=True,
+        )
+        raise typer.Exit(2)
     run_rows = [store.run(r) for r in runs] if runs else store.runs()
     if not run_rows or any(r is None for r in run_rows):
         typer.echo("error: no such run(s)", err=True)
@@ -362,7 +371,7 @@ def gate(
     if check_baseline:
         base = load_baseline(baseline)
         rate = base["passed"] / base["n"]
-        ok = rate >= FLOOR
+        ok = rate >= FLOOR and base.get("variant") == "guarded"
         typer.echo(f"baseline {base['passed']}/{base['n']} = {rate:.1%}; floor {FLOOR:.0%}")
         raise typer.Exit(0 if ok else 1)
     store = Store(db)

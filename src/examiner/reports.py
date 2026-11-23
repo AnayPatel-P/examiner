@@ -265,7 +265,8 @@ def run_ops(run: Row, results: Sequence[Row]) -> dict:
 
     lat = sorted(r["latency_s"] for r in results if r["latency_s"] is not None)
     costs = [run["cost_usd"], run["target_cost_usd"]]
-    total = None if all(c is None for c in costs) else round(sum(c or 0 for c in costs), 6)
+    # A missing part makes the total unknown, not smaller.
+    total = None if any(c is None for c in costs) else round(sum(costs), 6)
     n = len(results)
     return {
         "n": n,

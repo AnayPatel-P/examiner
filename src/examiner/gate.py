@@ -58,4 +58,7 @@ def gate_check(
 
 
 def load_baseline(path: Path = BASELINE) -> dict:
-    return json.loads(Path(path).read_text())
+    base = json.loads(Path(path).read_text())
+    if not base.get("n") or base.get("variant") != "guarded":
+        raise ValueError(f"{path}: baseline must be a guarded run with scored samples")
+    return base

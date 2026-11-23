@@ -75,3 +75,8 @@ def test_run_ops_latency_and_cost():
 def test_run_ops_without_latency():
     ops = run_ops({"cost_usd": None, "target_cost_usd": None, "wall_seconds": None}, [res("a", 1)])
     assert ops["latency_p50_s"] is None and ops["total_cost_usd"] is None
+
+
+def test_run_ops_total_unknown_when_a_part_is_missing():
+    ops = run_ops({"cost_usd": 1.5, "target_cost_usd": None, "wall_seconds": 1.0}, [res("a", 1)])
+    assert ops["total_cost_usd"] is None and ops["cost_per_scenario_usd"] is None

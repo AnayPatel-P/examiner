@@ -1,6 +1,7 @@
 .PHONY: dev test lint smoke api web web-test
 
 dev:
+	@test -f .env || { echo 'No .env: cp .env.example .env and set ANTHROPIC_API_KEY'; exit 1; }
 	uv run uvicorn examiner.meridian.app:app --port 8001 --reload --env-file .env
 
 test:

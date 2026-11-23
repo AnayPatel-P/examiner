@@ -76,7 +76,7 @@ async def rescore_run(
     with store.db:
         for (sid, ep), (passed, rationale) in new.items():
             prev = old.get((sid, ep))
-            if prev is not None:
+            if prev is not None and prev["judge_version"] != version:
                 store.db.execute(
                     "INSERT OR REPLACE INTO score_archive "
                     "SELECT *, datetime('now') FROM score "

@@ -118,3 +118,17 @@ def test_cli_run_fails_when_every_sample_errors(tmp_path: Path, monkeypatch):
     )
     assert result.exit_code == 1
     assert "all 5 samples errored" in result.output
+
+
+def test_label_batch_refuses_to_replace_labeled_batch(tmp_path: Path):
+    from tests.api.seed import seeded
+
+    db = tmp_path / "x.db"
+    seeded(db)
+    args = ["label-batch", "--db", str(db), "--per-rubric", "3"]
+    assert CliRunner().invoke(app, args).exit_code == 0
+    first = Store(db).batch_items("calib-v1")[0]
+    Store(db).save_label(first["run_id"], first["sample_id"], 1, first["rubric"], True)
+    res = CliRunner().invoke(app, args)
+    assert res.exit_code == 2 and "already has 1 labels" in res.output
+    assert CliRunner().invoke(app, [*args, "--force"]).exit_code == 0

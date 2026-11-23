@@ -261,8 +261,11 @@ class Store:
             return self.db.execute(
                 "SELECT l.run_id, l.sample_id, l.epoch, l.human_pass, s.passed AS judge_pass "
                 "FROM label l LEFT JOIN (SELECT run_id, sample_id, epoch, rubric, passed, "
-                "judge_version FROM score UNION ALL SELECT run_id, sample_id, epoch, rubric, "
-                "passed, judge_version FROM score_archive) s ON s.run_id = l.run_id "
+                "judge_version FROM score UNION ALL SELECT a.run_id, a.sample_id, a.epoch, "
+                "a.rubric, a.passed, a.judge_version FROM score_archive a WHERE NOT EXISTS "
+                "(SELECT 1 FROM score c WHERE c.run_id = a.run_id AND c.sample_id = a.sample_id "
+                "AND c.epoch = a.epoch AND c.rubric = a.rubric "
+                "AND c.judge_version = a.judge_version)) s ON s.run_id = l.run_id "
                 "AND s.sample_id = l.sample_id AND s.epoch = l.epoch AND s.rubric = l.rubric "
                 "AND s.judge_version = ? WHERE l.rubric = ? "
                 "ORDER BY l.run_id, l.sample_id, l.epoch",
