@@ -6,6 +6,7 @@ import Finding from './screens/Finding'
 import Label from './screens/Label'
 import RunPage from './screens/Run'
 import Runs from './screens/Runs'
+import { STATIC } from './api'
 
 type Theme = 'system' | 'light' | 'dark'
 
@@ -39,6 +40,16 @@ function ThemeToggle() {
   )
 }
 
+function LocalOnly() {
+  return (
+    <div className="state">
+      <h1>Labeling is local-only</h1>
+      <p>This is a read-only snapshot. Clone the repo and run the dashboard to label transcripts.</p>
+      <Link to="/calibration">See the calibration results</Link>
+    </div>
+  )
+}
+
 function NotFound() {
   return (
     <div className="state">
@@ -64,13 +75,16 @@ export default function App() {
               Runs
             </NavLink>
             <NavLink to="/diff">Diff</NavLink>
-            <NavLink to="/label">Label</NavLink>
+            {!STATIC && <NavLink to="/label">Label</NavLink>}
             <NavLink to="/calibration">Calibration</NavLink>
           </nav>
           <ThemeToggle />
         </div>
         <div className="banner">
-          <p>Not legal advice. Meridian Bank is fictional; scenarios test public Reg E rules and a made-up fee schedule.</p>
+          <p>
+            Not legal advice. Meridian Bank is fictional; scenarios test public Reg E rules and a made-up fee schedule.
+            {STATIC && ' Read-only snapshot.'}
+          </p>
         </div>
       </header>
       <main id="main" tabIndex={-1}>
@@ -78,7 +92,7 @@ export default function App() {
           <Route path="/" element={<Runs />} />
           <Route path="/runs/:runId" element={<RunPage />} />
           <Route path="/runs/:runId/results/:sampleId" element={<Finding />} />
-          <Route path="/label" element={<Label />} />
+          <Route path="/label" element={STATIC ? <LocalOnly /> : <Label />} />
           <Route path="/calibration" element={<Calibration />} />
           <Route path="/diff" element={<DiffPage />} />
           <Route path="*" element={<NotFound />} />

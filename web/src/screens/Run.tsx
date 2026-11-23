@@ -1,5 +1,5 @@
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router'
-import { api, CHECKS, RUBRICS, type Check, type Scorecard } from '../api'
+import { api, CHECKS, RUBRICS, type Check, type Scorecard, type Taxonomy } from '../api'
 import { Chip, Empty, ErrorState, Loading, Rate, TableWrap, useLoad } from '../components'
 import { money, pct, secs, variantLabel, when } from '../format'
 
@@ -41,6 +41,59 @@ function ScorecardTable({ card }: { card: Scorecard }) {
   )
 }
 
+const MODE_LABEL: Record<string, string> = {
+  fact_missing: 'left out a required fact',
+  fact_forbidden: 'said a forbidden fact',
+  factual: 'factual rubric',
+  disclosure: 'disclosure rubric',
+  commitments: 'commitments rubric',
+}
+
+function WhereItFails({ tax }: { tax: Taxonomy }) {
+  const failing = tax.sections.filter((s) => s.failed > 0)
+  if (tax.failed_scenarios === 0) return <p className="small muted">No scored scenario failed in this run.</p>
+  const modes = Object.entries(tax.modes).sort((a, b) => b[1] - a[1])
+  return (
+    <>
+      <p className="small">
+        {tax.failed_scenarios} of {tax.scored_scenarios} scored scenarios failed. How:{' '}
+        {modes.map(([m, n], i) => (
+          <span key={m}>{i > 0 && ' · '}{MODE_LABEL[m] ?? m} {n}</span>
+        ))}
+        . A scenario can fail more than one way.
+      </p>
+      <TableWrap label="Failures by rule, scrolls sideways">
+        <table>
+          <caption className="sr-only">Failures by Reg E section and fee schedule</caption>
+          <thead>
+            <tr>
+              <th scope="col">Rule</th>
+              <th scope="col">Section</th>
+              <th scope="col" className="num">Failed</th>
+              <th scope="col">Worst clauses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {failing.map((s) => {
+              const worst = tax.clauses.filter((c) => c.section === s.section && c.failed > 0).slice(0, 3)
+              return (
+                <tr key={s.section}>
+                  <th scope="row" className="row-head">{s.section === 'fee schedule' ? 'Fee schedule' : `12 CFR ${s.section}`}</th>
+                  <td>{s.section_title || 'Meridian fees'}</td>
+                  <td className="num">{s.failed} of {s.n}</td>
+                  <td className="small">
+                    {worst.map((c) => `${c.citation.replace('12 CFR ', '').replace('fee:', '')} (${c.failed}/${c.n})`).join(', ')}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </TableWrap>
+    </>
+  )
+}
+
 const STATUSES = [
   { v: '', label: 'All' },
   { v: 'fail', label: 'Failed' },
@@ -56,6 +109,7 @@ export default function RunPage() {
   const nav = useNavigate()
   const run = useLoad(() => api.run(runId), [runId])
   const results = useLoad(() => api.results(runId, { status, area }), [runId, status, area])
+  const tax = useLoad(() => api.taxonomy(runId), [runId])
 
   const set = (k: string, v: string) => {
     const p = new URLSearchParams(params)
@@ -68,7 +122,7 @@ export default function RunPage() {
   if (run.loading) return <Loading label="Loading run" />
   if (run.error) return <ErrorState error={run.error} onRetry={run.reload} />
   if (!run.data) return null
-  const { run: r, scorecard } = run.data
+  const { run: r, scorecard, ops } = run.data
   const areas = Object.keys(scorecard).filter((a) => a !== 'all')
   const qs = params.toString()
 
@@ -87,11 +141,25 @@ export default function RunPage() {
           {when(r.started_at)} · judge {money(r.cost_usd)} · bot {money(r.target_cost_usd)} · {secs(r.wall_seconds)} ·{' '}
           {r.judge_version ?? 'no judge version'}
         </p>
+        {ops && (ops.latency_p50_s !== null || ops.cost_per_scenario_usd !== null) && (
+          <p className="small muted">
+            {ops.cost_per_scenario_usd !== null && `$${ops.cost_per_scenario_usd.toFixed(3)} per scenario`}
+            {ops.latency_p50_s !== null &&
+              ` · bot latency p50 ${ops.latency_p50_s.toFixed(1)} s, p95 ${ops.latency_p95_s?.toFixed(1)} s per conversation`}
+          </p>
+        )}
       </div>
 
       <section className="section" aria-labelledby="scorecard-h">
         <h2 id="scorecard-h">Scorecard</h2>
         <ScorecardTable card={scorecard} />
+      </section>
+
+      <section className="section" aria-labelledby="fails-h">
+        <h2 id="fails-h">Where it fails</h2>
+        {tax.loading && <Loading label="Loading failure breakdown" />}
+        {tax.error && <ErrorState error={tax.error} onRetry={tax.reload} />}
+        {tax.data && <WhereItFails tax={tax.data} />}
       </section>
 
       <section className="section" aria-labelledby="results-h">

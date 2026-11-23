@@ -458,6 +458,22 @@ def calibration(
         typer.echo(f"wrote {out}")
 
 
+@app.command()
+def export(
+    out: Path = typer.Option(Path("web/public/data"), help="Where the JSON snapshot goes."),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Write a static JSON snapshot of every run for the GitHub Pages scorecard."""
+    import shutil
+
+    from examiner.export import export_snapshot
+
+    if out.exists():
+        shutil.rmtree(out)
+    n = export_snapshot(db, out)
+    typer.echo(f"wrote {n} files to {out}; build with `npm --prefix web run build:static`")
+
+
 @app.command("regs-fetch")
 def regs_fetch(
     date: str = typer.Option(..., help="eCFR point-in-time date, YYYY-MM-DD."),

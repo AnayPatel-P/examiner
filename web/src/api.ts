@@ -44,6 +44,32 @@ export interface ResultRow {
   error: string | null
 }
 
+export interface RunOps {
+  n: number
+  judge_cost_usd: number | null
+  target_cost_usd: number | null
+  total_cost_usd: number | null
+  cost_per_scenario_usd: number | null
+  wall_seconds: number | null
+  latency_p50_s: number | null
+  latency_p95_s: number | null
+  latency_mean_s: number | null
+}
+
+export interface TaxonomyRow {
+  section: string
+  section_title: string
+  n: number
+  failed: number
+}
+export interface Taxonomy {
+  scored_scenarios: number
+  failed_scenarios: number
+  modes: Record<string, number>
+  sections: TaxonomyRow[]
+  clauses: (TaxonomyRow & { citation: string; modes: Record<string, number>; failing: string[] })[]
+}
+
 export interface Fact {
   id: string
   any_of: string[]
@@ -178,9 +204,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 const enc = encodeURIComponent
 
-export const api = {
+const liveApi = {
   runs: () => request<RunSummary[]>('/runs'),
-  run: (id: string) => request<{ run: RunSummary; scorecard: Scorecard }>(`/runs/${enc(id)}`),
+  run: (id: string) => request<{ run: RunSummary; scorecard: Scorecard; ops: RunOps }>(`/runs/${enc(id)}`),
+  taxonomy: (id: string) => request<Taxonomy>(`/runs/${enc(id)}/taxonomy`),
   results: (id: string, f: { area?: string; status?: string } = {}) =>
     request<ResultRow[]>(`/runs/${enc(id)}/results${query(f)}`),
   result: (id: string, sample: string, epoch = 1) =>
@@ -199,3 +226,61 @@ export const api = {
   calibration: () => request<Calibration>('/calibration'),
   diff: (a: string, b: string, check: Check = 'overall') => request<Diff>(`/diff${query({ a, b, check })}`),
 }
+
+// Static mode (GitHub Pages): read the JSON snapshot written by `examiner export`.
+// Filtering that the API does server-side happens here instead. Labeling is local-only.
+export const STATIC = import.meta.env.VITE_STATIC === '1'
+
+const cache = new Map<string, Promise<unknown>>()
+function snapshot<T>(path: string): Promise<T> {
+  if (!cache.has(path)) {
+    const url = `${import.meta.env.BASE_URL}data/${path}`
+    cache.set(
+      path,
+      fetch(url).then(
+        (r) => {
+          if (!r.ok) throw new ApiError(r.status, r.status === 404 ? 'Not in this snapshot.' : `Request failed (${r.status})`)
+          return r.json()
+        },
+        () => {
+          throw new ApiError(0, 'Cannot load the scorecard snapshot.')
+        },
+      ),
+    )
+  }
+  return cache.get(path) as Promise<T>
+}
+
+const localOnly = () => Promise.reject(new ApiError(0, 'Labeling runs in the local app, not this public snapshot.'))
+
+export const staticApi: typeof liveApi = {
+  runs: () => snapshot<RunSummary[]>('runs.json'),
+  run: (id) => snapshot(`runs/${id}.json`),
+  taxonomy: (id) => snapshot<Taxonomy>(`runs/${id}/taxonomy.json`),
+  results: async (id, f = {}) => {
+    const rows = await snapshot<ResultRow[]>(`runs/${id}/results.json`)
+    return rows.filter(
+      (r) =>
+        (!f.area || r.area === f.area) &&
+        (!f.status ||
+          (f.status === 'error' ? !!r.error : f.status === 'pass' ? r.overall === 1 : f.status === 'fail' ? r.overall === 0 : true)),
+    )
+  },
+  result: async (id, sample, epoch = 1) => {
+    const all = await snapshot<Record<string, ResultDetail>>(`runs/${id}/details.json`)
+    const d = all[`${sample}/${epoch}`]
+    if (!d) throw new ApiError(404, `no result ${sample} epoch ${epoch} in run ${id}`)
+    return d
+  },
+  labelQueue: localOnly,
+  batches: () => Promise.resolve([]),
+  postLabel: localOnly,
+  labels: () => Promise.resolve([]),
+  calibration: () => snapshot<Calibration>('calibration.json'),
+  diff: async (a, b, check = 'overall') => {
+    const all = await snapshot<Record<Check, Diff>>(`diff/${a}__${b}.json`)
+    return all[check]
+  },
+}
+
+export const api = STATIC ? staticApi : liveApi

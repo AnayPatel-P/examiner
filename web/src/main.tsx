@@ -8,13 +8,17 @@ import './base.css'
 import './screens.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router'
+import { BrowserRouter, HashRouter } from 'react-router'
 import App from './App'
+import { STATIC } from './api'
+
+// GitHub Pages has no SPA fallback, so the static build routes with the URL hash.
+const Router = STATIC ? HashRouter : BrowserRouter
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <Router>
       <App />
-    </BrowserRouter>
+    </Router>
   </StrictMode>,
 )

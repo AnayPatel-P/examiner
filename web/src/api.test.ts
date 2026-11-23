@@ -43,3 +43,29 @@ describe('api', () => {
     await expect(api.runs()).rejects.toMatchObject({ status: 0 })
   })
 })
+
+describe('static snapshot api', () => {
+  const rows = [
+    { sample_id: 'a', epoch: 1, area: 'fees', overall: 1, error: null },
+    { sample_id: 'b', epoch: 1, area: 'reg_e', overall: 0, error: null },
+    { sample_id: 'c', epoch: 1, area: 'reg_e', overall: null, error: 'boom' },
+  ]
+  it('filters results like the API does', async () => {
+    const { staticApi } = await import('./api')
+    mockFetch(200, rows)
+    const ids = async (f: { status?: string; area?: string }) =>
+      (await staticApi.results('r-filter', f)).map((r) => r.sample_id)
+    expect(await ids({})).toEqual(['a', 'b', 'c'])
+    expect(await ids({ status: 'fail' })).toEqual(['b'])
+    expect(await ids({ status: 'pass' })).toEqual(['a'])
+    expect(await ids({ status: 'error' })).toEqual(['c'])
+    expect(await ids({ area: 'reg_e', status: 'fail' })).toEqual(['b'])
+  })
+  it('picks one diff check and refuses labeling', async () => {
+    const { staticApi } = await import('./api')
+    const f = mockFetch(200, { overall: { check: 'overall' }, factual: { check: 'factual' } })
+    expect((await staticApi.diff('x', 'y', 'factual')).check).toBe('factual')
+    expect(f.mock.calls[0][0]).toBe('/data/diff/x__y.json')
+    await expect(staticApi.postLabel({ run_id: 'x', sample_id: 's', epoch: 1, rubric: 'factual', human_pass: true })).rejects.toThrow(/local/)
+  })
+})
