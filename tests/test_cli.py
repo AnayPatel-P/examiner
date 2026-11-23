@@ -106,3 +106,15 @@ def test_label_batch_command(tmp_path: Path):
     assert all(i["sample_id"] != "rege-001" for i in items)  # errored
     assert ("guard1", "rege-020", "commitments") not in keys  # no judge verdict
     assert len(items) == 9
+
+
+def test_cli_run_fails_when_every_sample_errors(tmp_path: Path, monkeypatch):
+    from tests.conftest import free_port
+
+    monkeypatch.chdir(tmp_path)
+    dead = f"http://127.0.0.1:{free_port()}"  # nothing listens here
+    result = CliRunner().invoke(
+        app, ["run", "--pack", "smoke", "--target", dead, "--judge-model", "mockllm/model"]
+    )
+    assert result.exit_code == 1
+    assert "all 5 samples errored" in result.output

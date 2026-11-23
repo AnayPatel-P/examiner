@@ -104,6 +104,12 @@ def run(
     money = lambda v: f"${v:.4f}" if v is not None else "n/a"  # noqa: E731
     if budget.exhausted():
         typer.echo(f"\nwarning: judge budget ${max_run_cost} reached; later rubrics not judged")
+    if rows and all(r["error"] for r in rows):
+        typer.echo(
+            f"\nerror: all {len(rows)} samples errored. First error: {rows[0]['error'][:200]}",
+            err=True,
+        )
+        raise typer.Exit(1)
     typer.echo(
         f"\nrun {run_id} · fact {fact}/{n} · judge {judge}/{n} · judge cost {money(jc)} · "
         f"target cost {money(tc)} · wall {wall:.0f}s"

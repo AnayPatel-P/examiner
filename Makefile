@@ -1,7 +1,7 @@
 .PHONY: dev test lint smoke api web web-test
 
 dev:
-	uv run uvicorn examiner.meridian.app:app --port 8001 --reload
+	uv run uvicorn examiner.meridian.app:app --port 8001 --reload --env-file .env
 
 test:
 	uv run pytest -q
