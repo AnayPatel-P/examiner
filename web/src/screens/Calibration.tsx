@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { api, RUBRICS, type AgreementReport, type Rubric } from '../api'
+import { api, RUBRICS, STATIC, type AgreementReport, type Rubric } from '../api'
 import { Empty, ErrorState, Loading, useLoad } from '../components'
 import { kappaWord } from '../lib/kappa'
 
@@ -103,8 +103,17 @@ export default function Calibration() {
       {error && <ErrorState error={error} onRetry={reload} />}
       {data && total === 0 && (
         <Empty>
-          <p>No labels yet.</p>
-          <Link className="btn btn-primary" to="/label">Start labeling</Link>
+          {STATIC ? (
+            <p>
+              Not measured yet. A 102-item blind batch, mixed pass and fail across all three bots, is built and waiting
+              for human labels. Until then the judge&rsquo;s verdicts are unvalidated.
+            </p>
+          ) : (
+            <>
+              <p>No labels yet.</p>
+              <Link className="btn btn-primary" to="/label">Start labeling</Link>
+            </>
+          )}
         </Empty>
       )}
       {data && total > 0 && (

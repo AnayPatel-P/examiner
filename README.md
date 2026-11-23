@@ -2,17 +2,21 @@
 
 **An eval harness that grades a bank's chatbot against the actual regulation text.**
 
-On 127 scenarios citing Regulation E and a fee schedule, a naive bot passes **20.5%**. A guarded version of the same bot passes **90.6%**. Run to run, that's **fixed 90, broke 1**, and the dashboard shows you which one broke and why.
+On 127 scenarios citing Regulation E and a fee schedule, a naive bot passes **21.3%**. A guarded version of the same bot passes **92.1%**. Run to run, that's **fixed 93, broke 3**, and the dashboard shows you which ones broke and why.
 
 ![Examiner dashboard walkthrough: runs, scorecards, the naive-to-guarded diff, a failing finding with its cited rule, and blind labeling](docs/demo/walkthrough.gif)
 
-| Bot | Overall | Factual | Discloses the fact | No invented promises |
-|---|---|---|---|---|
-| Naive (plain system prompt) | 20.5% | 56.7% | 33.1% | 100% |
-| Guarded (grounded + rules) | **90.6%** | 96.9% | 100% | 100% |
-| Misinformed (deliberately wrong, for calibration) | 1.6% | 8.0% | 19.2% | 53.6% |
+| Bot | Overall | Fact check | Factual | Discloses the fact | No invented promises |
+|---|---|---|---|---|---|
+| Naive (plain system prompt) | 21.3% | 38.6% | 51.2% | 33.9% | 100% |
+| Guarded (grounded + rules) | **92.1%** | 96.1% | 96.1% | 100% | 100% |
+| Misinformed (deliberately wrong, for calibration) | 0.8% | 16.5% | 5.5% | 18.1% | 57.5% |
 
-Overall = the deterministic fact check AND all three judge rubrics pass. A full run takes about 3 minutes and costs about $1.80 (Sonnet 5.5 judge, Haiku 5.5 bot).
+Overall = the deterministic fact check AND all three judge rubrics pass. Runs from 2026-11-22, one attempt per scenario. A guarded run takes about 3 minutes and costs $1.76 ($0.014 per scenario, Sonnet 5.5 judge, Haiku 5.5 bot); bot latency is 1.4 s p50 and 4.0 s p95 per conversation.
+
+**Judge agreement with a human is not measured yet.** The 102-item blind calibration batch is built and waiting for labels, so the judge's numbers above are unvalidated. Reading the guarded failures by hand already turned up one judge error (see [What fails](#what-fails)).
+
+[Deployment memo](docs/memo.md): launch criteria, thresholds, and why the guarded bot isn't cleared yet.
 
 Not legal advice. Meridian Bank is fictional.
 
@@ -81,7 +85,38 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 20+, and an Ant
    make api & make web
    ```
 
-Also useful: `uv run examiner diff <runA> <runB>`, `uv run examiner kappa --rubric factual`, and `make test`.
+Also useful:
+
+| Command | What it does |
+|---|---|
+| `examiner diff <runA> <runB>` | Fixed, broke and still failing between two runs |
+| `examiner taxonomy <run>` | Failures by Reg E section, clause and failure mode |
+| `examiner gate` | Exit 1 if the latest guarded run regressed |
+| `examiner label-batch` | Build a mixed pass/fail calibration batch for the Label screen |
+| `examiner calibration` | Kappa per rubric from your labels (`--version factual-v2` for an older rubric) |
+| `examiner rescore --rubric factual` | Re-judge stored transcripts after a rubric change, without calling the bot |
+| `examiner export` then `npm --prefix web run build:static` | The read-only scorecard for GitHub Pages |
+
+All commands run through `uv run` from the repo root.
+
+## What fails
+
+`examiner taxonomy <run>` groups failures by the clause each scenario cites, and by how it failed. The Run page shows the same breakdown.
+
+- **Naive bot (100 of 127 fail).** Mostly it doesn't say the answer: 84 disclosure fails and 77 missing required facts, against 62 factual errors. Fee questions are the worst (57 of 59 fail), because a one-line prompt has no fee schedule. Error resolution under 1005.11 fails 24 of 34.
+- **Guarded bot (10 of 127 fail),** read one by one:
+  - 5 are fact-check false fails. Four NSF answers correctly say the fee is $0, then mention the $34 overdraft fee, which trips the must-not-say "$34". One correct 1005.10(e)(2) answer misses the expected phrase.
+  - 1 is a judge error. The bot says provisional credit for new accounts comes within 20 business days. The judge failed it against the 10 days in 1005.11(c)(2)(i), but 1005.11(c)(3)(i) moves it to 20 for transfers within 30 days of the first deposit. The scenario only cites (c)(2)(i), so the judge never saw the exception.
+  - 1 looks real: "will consider extending" where 1005.6(b)(4) says the bank shall extend.
+  - 3 are strict readings worth a human call (1005.11(c)(2)(ii), and 1005.10(d)(1) twice).
+- **Misinformed bot (126 of 127 fail).** This is the control: it's told wrong facts on purpose, so the rubrics have real failures to catch, including 54 invented commitments.
+
+## Regression gate
+
+`examiner gate` fails a guarded run if its overall pass rate drops below **85%**, or more than **4 points** below the accepted baseline in `gate/baseline.json` (currently 117/127). Both thresholds sit above run-to-run noise: two identical guarded runs once differed on 6 of 127 scenarios. Runs with under 95% of samples scored fail too, so errors or an exhausted judge budget can't pass.
+
+- CI checks the committed baseline on every push.
+- The `eval-gate` workflow runs the live guarded pack on PRs that touch the bot, rubrics, runner or packs, once an `ANTHROPIC_API_KEY` repo secret is set (about $2 per run).
 
 ## Design decisions
 
@@ -97,18 +132,18 @@ The full log, with the alternatives considered, is in [docs/pm/DECISIONS.md](doc
 ## Limits
 
 - **Judge agreement isn't measured yet.**
-  - A 20-label spike reached 0.80 raw agreement, but kappa came out at 0.00, because every human label was a pass.
-  - The full calibration set (about 100 labels, mixed across bots) is in progress.
-  - Until it's done, the judge's numbers are unvalidated.
+  - A 20-label spike reached 0.80 raw agreement, but its kappa (0.00) means nothing: every human label was a pass.
+  - The full calibration batch (102 items, 34 per rubric, mixed pass and fail across all three bots) is built but not labeled.
+  - Until it is, the judge's numbers are unvalidated.
+- **The judge only knows what a scenario cites.** An exception elsewhere in the rule reads as an error (rege-012, below).
 - **The fact checks have false fails.**
-  - 8 of guarded's 12 failures come only from the string-match fact checks, and the judge passed all 8.
-  - At least 7 of those are the match going wrong: "$34" in a correct overdraft aside, or "6th" vs "six".
+  - 5 of guarded's 10 failures are the string match going wrong, and the judge passed all 5.
   - They're kept as-is so naive and guarded stay comparable (D18).
 - **One attempt per scenario.** Two guarded runs differed on 6 scenarios, so a diff of a few scenarios between single-attempt runs is partly noise. More attempts per scenario would fix that, at proportional cost.
 - **Narrow scope.** Two areas (Reg E and fees), one fictional bank, English only. Adversarial prompts and escalation are not in v1.
 - **The judge and the bot are both Claude models,** so shared blind spots are possible. Calibration against human labels is the check on that.
 - **The bot is fictional and the regulation snapshot is dated** (eCFR, 2026-11-17). Nothing here is legal advice.
-- **The dashboard needs a local run to show anything.** A static, no-key export for the demo is the next phase.
+- **The public scorecard is a snapshot.** `examiner export` freezes the runs into JSON for GitHub Pages; labeling only works in the local app.
 
 ## Project docs
 
