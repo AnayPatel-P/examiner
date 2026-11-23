@@ -88,8 +88,12 @@ def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monke
 
 
 def test_run_cost_cap_option():
-    result = CliRunner().invoke(app, ["run", "--help"])
-    assert "--max-run-cost" in result.output
+    import re
+
+    # CI runners make Rich color the help text; strip ANSI codes before matching.
+    result = CliRunner().invoke(app, ["run", "--help"], env={"NO_COLOR": "1", "TERM": "dumb"})
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
+    assert "--max-run-cost" in plain
 
 
 def test_label_batch_command(tmp_path: Path):
