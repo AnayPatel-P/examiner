@@ -91,6 +91,12 @@ export interface QueueItem {
   rubric_text: string
 }
 
+export interface LabelBatch {
+  name: string
+  n: number
+  labeled: number
+}
+
 export interface LabelIn {
   run_id: string
   sample_id: string
@@ -179,8 +185,9 @@ export const api = {
     request<ResultRow[]>(`/runs/${enc(id)}/results${query(f)}`),
   result: (id: string, sample: string, epoch = 1) =>
     request<ResultDetail>(`/runs/${enc(id)}/results/${enc(sample)}${query({ epoch })}`),
-  labelQueue: (p: { rubric: Rubric; run?: string; limit?: number }) =>
+  labelQueue: (p: { rubric?: Rubric; run?: string; batch?: string; limit?: number }) =>
     request<QueueItem[]>(`/label-queue${query(p)}`),
+  batches: () => request<LabelBatch[]>('/batches'),
   postLabel: (body: LabelIn) =>
     request<LabelIn>('/labels', {
       method: 'POST',

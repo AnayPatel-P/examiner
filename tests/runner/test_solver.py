@@ -63,3 +63,11 @@ def test_empty_reply_is_target_error(bot, tmp_path: Path):
     log = run(url, tmp_path, sample_id="fees-nsf")
     [sample] = log.samples or []
     assert sample.error is not None and "empty reply" in sample.error.message
+
+
+def test_solver_records_target_latency(bot, tmp_path: Path):
+    url, _ = bot
+    log = run(url, tmp_path, sample_id="rege-provisional-credit")
+    [sample] = log.samples or []
+    latency = sample.metadata["target_latency_s"]
+    assert isinstance(latency, float) and 0 < latency < 30

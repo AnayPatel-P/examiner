@@ -255,6 +255,209 @@ def label(labels: Path = typer.Option(Path("spike/labels.csv"))) -> None:
     typer.echo(f"\n{done}/{len(rows)} labeled, saved to {labels}")
 
 
+@app.command("label-batch")
+def label_batch(
+    name: str = typer.Option("calib-v1", help="Batch name, shown on the Label screen."),
+    runs: list[str] = typer.Option(None, "--run", help="Runs to draw from (default: all)."),
+    per_rubric: int = typer.Option(34, min=1, help="Items per rubric."),
+    seed: str = typer.Option("phase-5"),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Pick a mixed pass/fail calibration batch across runs, variants and rubrics."""
+    from collections import Counter
+
+    from examiner.batch import select_batch
+
+    store = Store(db)
+    run_rows = [store.run(r) for r in runs] if runs else store.runs()
+    if not run_rows or any(r is None for r in run_rows):
+        typer.echo("error: no such run(s)", err=True)
+        raise typer.Exit(2)
+    labeled = {(x["run_id"], x["sample_id"], x["epoch"], x["rubric"]) for x in store.labels()}
+    candidates = []
+    for run_row in run_rows:
+        assert run_row is not None
+        errored = {(r["sample_id"], r["epoch"]) for r in store.results(run_row["id"]) if r["error"]}
+        for sc in store.scores(run_row["id"]):
+            key = (run_row["id"], sc["sample_id"], sc["epoch"], sc["rubric"])
+            if sc["passed"] is None or key in labeled or key[1:3] in errored:
+                continue
+            candidates.append(
+                {
+                    "run_id": run_row["id"],
+                    "variant": run_row["variant"],
+                    "sample_id": sc["sample_id"],
+                    "epoch": sc["epoch"],
+                    "rubric": sc["rubric"],
+                    "judge_pass": sc["passed"],
+                }
+            )
+    items = select_batch(candidates, per_rubric=per_rubric, seed=seed)
+    store.save_batch(name, items)
+    typer.echo(f"batch {name}: {len(items)} items")
+    cells = Counter((i["rubric"], i["variant"]) for i in items)
+    for (rubric, variant), n in sorted(cells.items()):
+        typer.echo(f"  {rubric:<12} {variant:<12} {n}")
+    typer.echo("Label it at /label?batch=" + name + " (judge verdicts stay hidden).")
+
+
+@app.command()
+def taxonomy(
+    run: str = typer.Argument(..., help="Run id."),
+    db: Path = typer.Option(Path("examiner.db")),
+    top: int = typer.Option(15, help="Clauses to print."),
+) -> None:
+    """Which cited clauses fail, how often, and how (fact check vs each judge rubric)."""
+    from examiner.reports import failure_taxonomy, scenarios_for
+
+    store = Store(db)
+    run_row = store.run(run)
+    if run_row is None:
+        typer.echo(f"error: no run {run}", err=True)
+        raise typer.Exit(2)
+    cites = {sid: sc.citations for sid, sc in scenarios_for(run_row["pack"]).items()}
+    tax = failure_taxonomy(store.results(run), store.scores(run), cites)
+    typer.echo(
+        f"{tax['failed_scenarios']}/{tax['scored_scenarios']} scored scenarios fail · modes: "
+        + ", ".join(f"{k} {v}" for k, v in sorted(tax["modes"].items(), key=lambda kv: -kv[1]))
+    )
+    typer.echo(f"\n{'section':<14} {'failed':>8}  title")
+    for sec in tax["sections"]:
+        typer.echo(f"{sec['section']:<14} {sec['failed']:>3}/{sec['n']:<4}  {sec['section_title']}")
+    typer.echo(f"\n{'clause':<30} {'failed':>8}  how")
+    for c in tax["clauses"][:top]:
+        how = ", ".join(f"{k} {v}" for k, v in sorted(c["modes"].items()))
+        typer.echo(f"{c['citation']:<30} {c['failed']:>3}/{c['n']:<4}  {how}")
+
+
+def _latest_run(store: Store, variant: str, pack: str):
+    for r in store.runs():
+        if r["variant"] == variant and r["pack"] == pack:
+            return r
+    return None
+
+
+@app.command()
+def gate(
+    run: str | None = typer.Option(None, "--run", help="Run to check (default: latest guarded)."),
+    baseline: Path = typer.Option(Path("gate/baseline.json")),
+    db: Path = typer.Option(Path("examiner.db")),
+    write_baseline: bool = typer.Option(False, help="Accept this run as the new baseline."),
+    check_baseline: bool = typer.Option(
+        False, help="Only check the committed baseline against the floor (no database)."
+    ),
+) -> None:
+    """Fail (exit 1) if the guarded bot's overall pass rate regressed."""
+    import json
+
+    from examiner.gate import FLOOR, MAX_DROP, gate_check, load_baseline
+    from examiner.reports import run_summary
+
+    if check_baseline:
+        base = load_baseline(baseline)
+        rate = base["passed"] / base["n"]
+        ok = rate >= FLOOR
+        typer.echo(f"baseline {base['passed']}/{base['n']} = {rate:.1%}; floor {FLOOR:.0%}")
+        raise typer.Exit(0 if ok else 1)
+    store = Store(db)
+    base = None if write_baseline else load_baseline(baseline)
+    row = store.run(run) if run else _latest_run(store, "guarded", (base or {}).get("pack", "v1"))
+    if row is None:
+        typer.echo("error: no run to check", err=True)
+        raise typer.Exit(2)
+    results = store.results(row["id"])
+    summ = run_summary(row, results, store.scores(row["id"]))
+    current = {
+        "variant": row["variant"],
+        "pack": row["pack"],
+        "passed": summ["overall"]["passed"],
+        "n": summ["overall"]["n"],
+        "total": len(results),
+        "run_id": row["id"],
+        "started_at": row["started_at"],
+        "judge_version": row["judge_version"],
+    }
+    if write_baseline:
+        baseline.parent.mkdir(parents=True, exist_ok=True)
+        baseline.write_text(json.dumps(current, indent=2) + "\n")
+        typer.echo(f"wrote {baseline}: {current['passed']}/{current['n']}")
+        return
+    assert base is not None
+    res = gate_check(current, base)
+    typer.echo(
+        f"gate {'PASS' if res.ok else 'FAIL'}: {res.summary} (floor {FLOOR:.0%}, "
+        f"max drop {100 * MAX_DROP:.0f} pts) · run {row['id']}"
+    )
+    for reason in res.reasons:
+        typer.echo(f"  - {reason}")
+    raise typer.Exit(0 if res.ok else 1)
+
+
+@app.command()
+def rescore(
+    rubric: str = typer.Option(..., help="Rubric to re-judge with its current version."),
+    runs: list[str] = typer.Option(None, "--run", help="Runs (default: every run)."),
+    judge_model: str = typer.Option(JUDGE_MODEL),
+    max_cost: float = typer.Option(5.0, help="Judge spend cap for this command, USD."),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Re-judge stored transcripts after a rubric change (the bot is not called)."""
+    import asyncio
+
+    from inspect_ai.model import get_model
+
+    from examiner.rescore import rescore_run
+    from examiner.scenarios.schema import RUBRIC_NAMES
+
+    if rubric not in RUBRIC_NAMES:
+        raise typer.BadParameter(f"rubric must be one of {', '.join(RUBRIC_NAMES)}")
+    store = Store(db)
+    budget = judge_budget(judge_model, max_cost)
+    model = get_model(judge_model, config=None)
+    targets = runs or [r["id"] for r in store.runs()]
+    for rid in targets:
+        rep = asyncio.run(rescore_run(store, rid, rubric, model, budget))
+        typer.echo(
+            f"{rid}: rescored {rep.rescored}, changed {rep.changed}, failed {len(rep.failed)}, "
+            f"skipped (budget) {rep.skipped_budget}"
+        )
+    typer.echo(f"judge spend ${budget.spent_usd:.4f}")
+
+
+@app.command()
+def calibration(
+    out: Path | None = typer.Option(None, help="Write the report as JSON here."),
+    version: list[str] = typer.Option(
+        None, "--version", help="Rubric version to compare, e.g. factual-v2 (repeatable)."
+    ),
+    db: Path = typer.Option(Path("examiner.db")),
+) -> None:
+    """Kappa per rubric from your labels (current verdicts, or named rubric versions)."""
+    import json
+
+    from examiner.calibration import calibration_by_rubric
+    from examiner.scenarios.schema import RUBRIC_NAMES
+
+    store = Store(db)
+    if version:
+        rows = {v: store.judged_with_labels(v.rsplit("-", 1)[0], judge_version=v) for v in version}
+    else:
+        rows = {r: store.judged_with_labels(r) for r in RUBRIC_NAMES}
+    rep = calibration_by_rubric(rows)
+    for name, d in rep.items():
+        k = "n/a" if d["kappa"] is None else f"{d['kappa']:.2f}"
+        ra = "n/a" if d["raw_agreement"] is None else f"{d['raw_agreement']:.2f}"
+        typer.echo(
+            f"{name:<16} n={d['n']:<4} kappa={k:<5} raw={ra:<5} "
+            f"TP/FN/FP/TN(human pass=pos)={d['both_pass']}/{d['judge_fail_human_pass']}/"
+            f"{d['judge_pass_human_fail']}/{d['both_fail']}"
+        )
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(rep, indent=2) + "\n")
+        typer.echo(f"wrote {out}")
+
+
 @app.command("regs-fetch")
 def regs_fetch(
     date: str = typer.Option(..., help="eCFR point-in-time date, YYYY-MM-DD."),

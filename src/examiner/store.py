@@ -45,6 +45,28 @@ CREATE TABLE IF NOT EXISTS label (
     created_at TEXT NOT NULL,
     PRIMARY KEY (run_id, sample_id, epoch, rubric)
 );
+CREATE TABLE IF NOT EXISTS score_archive (
+    run_id TEXT NOT NULL,
+    sample_id TEXT NOT NULL,
+    epoch INTEGER NOT NULL,
+    rubric TEXT NOT NULL,
+    passed INTEGER,
+    rationale TEXT,
+    judge_version TEXT,
+    archived_at TEXT NOT NULL,
+    PRIMARY KEY (run_id, sample_id, epoch, rubric, judge_version)
+);
+CREATE TABLE IF NOT EXISTS label_batch (
+    name TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    run_id TEXT NOT NULL,
+    sample_id TEXT NOT NULL,
+    epoch INTEGER NOT NULL,
+    rubric TEXT NOT NULL,
+    variant TEXT,
+    judge_pass INTEGER,
+    PRIMARY KEY (name, run_id, sample_id, epoch, rubric)
+);
 """
 
 TARGET_MODEL = "anthropic/claude-haiku-5-5"
@@ -54,7 +76,7 @@ TARGET_PRICE = (0.10, 0.50)
 # Columns added after the first schema; added to old databases on open.
 MIGRATIONS = {
     "run": {"target_cost_usd": "REAL", "wall_seconds": "REAL"},
-    "result": {"target_cost_usd": "REAL"},
+    "result": {"target_cost_usd": "REAL", "latency_s": "REAL"},
 }
 
 
@@ -114,6 +136,7 @@ class Store:
                 score_rows.append((run_id, str(s.id), s.epoch, rubric, passed, rationale, version))
             tu = s.metadata.get("target_usage")
             tcost = target_cost(tu["input_tokens"], tu["output_tokens"]) if tu else None
+            latency = s.metadata.get("target_latency_s")
             if not verdicts or any(v is None for v in verdicts):
                 judge_pass = None
             else:
@@ -131,10 +154,11 @@ class Store:
                     citation,
                     s.error.message if s.error else None,
                     tcost,
+                    latency,
                 )
             )
         judge_version = ",".join(sorted(versions)) or None
-        tcosts = [r[-1] for r in rows if r[-1] is not None]
+        tcosts = [r[10] for r in rows if r[10] is not None]
         run_target_cost = sum(tcosts) if tcosts else None
         wall = None
         if log.stats.started_at and log.stats.completed_at:
@@ -166,8 +190,9 @@ class Store:
             )
             self.db.executemany(
                 "INSERT OR REPLACE INTO result (run_id, sample_id, epoch, transcript, fact_pass, "
-                "fact_detail, judge_pass, judge_rationale, citation, error, target_cost_usd) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                "fact_detail, judge_pass, judge_rationale, citation, error, target_cost_usd, "
+                "latency_s) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                 rows,
             )
             self.db.executemany("INSERT OR REPLACE INTO score VALUES (?,?,?,?,?,?,?)", score_rows)
@@ -226,12 +251,61 @@ class Store:
             args.append(run_id)
         return self.db.execute(sql + " ORDER BY created_at, run_id, sample_id", args).fetchall()
 
-    def judged_with_labels(self, rubric: str) -> list[sqlite3.Row]:
-        """Every label for a rubric, joined to the judge's verdict (NULL if none)."""
+    def judged_with_labels(
+        self, rubric: str, judge_version: str | None = None
+    ) -> list[sqlite3.Row]:
+        """Every label for a rubric, joined to the judge's verdict (NULL if none).
+
+        With `judge_version`, uses that rubric version's verdicts, current or archived."""
+        if judge_version is not None:
+            return self.db.execute(
+                "SELECT l.run_id, l.sample_id, l.epoch, l.human_pass, s.passed AS judge_pass "
+                "FROM label l LEFT JOIN (SELECT run_id, sample_id, epoch, rubric, passed, "
+                "judge_version FROM score UNION ALL SELECT run_id, sample_id, epoch, rubric, "
+                "passed, judge_version FROM score_archive) s ON s.run_id = l.run_id "
+                "AND s.sample_id = l.sample_id AND s.epoch = l.epoch AND s.rubric = l.rubric "
+                "AND s.judge_version = ? WHERE l.rubric = ? "
+                "ORDER BY l.run_id, l.sample_id, l.epoch",
+                (judge_version, rubric),
+            ).fetchall()
         return self.db.execute(
             "SELECT l.run_id, l.sample_id, l.epoch, l.human_pass, s.passed AS judge_pass "
             "FROM label l LEFT JOIN score s ON s.run_id = l.run_id AND s.sample_id = l.sample_id "
             "AND s.epoch = l.epoch AND s.rubric = l.rubric WHERE l.rubric = ? "
             "ORDER BY l.run_id, l.sample_id, l.epoch",
             (rubric,),
+        ).fetchall()
+
+    def save_batch(self, name: str, items: list[dict]) -> None:
+        """Replace a labeling batch. Items keep their list order as their position."""
+        with self.db:
+            self.db.execute("DELETE FROM label_batch WHERE name = ?", (name,))
+            self.db.executemany(
+                "INSERT INTO label_batch VALUES (?,?,?,?,?,?,?,?)",
+                [
+                    (
+                        name,
+                        i,
+                        it["run_id"],
+                        it["sample_id"],
+                        it["epoch"],
+                        it["rubric"],
+                        it.get("variant"),
+                        it.get("judge_pass"),
+                    )
+                    for i, it in enumerate(items)
+                ],
+            )
+
+    def batch_items(self, name: str) -> list[sqlite3.Row]:
+        return self.db.execute(
+            "SELECT * FROM label_batch WHERE name = ? ORDER BY position", (name,)
+        ).fetchall()
+
+    def batches(self) -> list[sqlite3.Row]:
+        """Each batch with its size and how many of its items have a label."""
+        return self.db.execute(
+            "SELECT b.name, COUNT(*) AS n, COUNT(l.run_id) AS labeled FROM label_batch b "
+            "LEFT JOIN label l ON l.run_id = b.run_id AND l.sample_id = b.sample_id "
+            "AND l.epoch = b.epoch AND l.rubric = b.rubric GROUP BY b.name ORDER BY b.name"
         ).fetchall()

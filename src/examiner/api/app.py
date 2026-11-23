@@ -14,8 +14,10 @@ from examiner.reports import (
     CHECKS,
     areas_for,
     diff_runs,
+    failure_taxonomy,
     overall_pass,
     rubric_map,
+    run_ops,
     run_summary,
     scenarios_for,
     scorecard,
@@ -70,7 +72,15 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
         return {
             "run": run_summary(run, results, scores),
             "scorecard": scorecard(results, scores, areas_for(run["pack"])),
+            "ops": run_ops(run, results),
         }
+
+    @api.get("/api/runs/{run_id}/taxonomy")
+    def taxonomy(run_id: str) -> dict:
+        s = store()
+        run = get_run(s, run_id)
+        cites = {sid: sc.citations for sid, sc in scenarios_for(run["pack"]).items()}
+        return failure_taxonomy(s.results(run_id), s.scores(run_id), cites)
 
     @api.get("/api/runs/{run_id}/results")
     def results(
@@ -145,15 +155,59 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
             ],
         }
 
+    def queue_item(run_id: str, pack: dict, r, rubric: str) -> dict:
+        sc = pack.get(r["sample_id"])
+        return {
+            "run_id": run_id,
+            "sample_id": r["sample_id"],
+            "epoch": r["epoch"],
+            "rubric": rubric,
+            "transcript": r["transcript"],
+            "citations": [
+                {"cite": c, "display": display_citation(c), "text": cited_text(c, children=True)}
+                for c in (sc.citations if sc else [])
+            ],
+            "source_note": sc.source_note if sc else "",
+            "key_facts": [f.any_of for f in sc.must_say] if sc else [],
+            "rubric_text": rubric_guide(rubric),
+        }
+
+    @api.get("/api/batches")
+    def batches() -> list[dict]:
+        return [dict(b) for b in store().batches()]
+
     @api.get("/api/label-queue")
     def label_queue(
-        rubric: Rubric = "factual", run: str | None = None, limit: int = Query(20, ge=1, le=500)
+        rubric: Rubric = "factual",
+        run: str | None = None,
+        batch: str | None = None,
+        limit: int = Query(20, ge=1, le=500),
     ) -> list[dict]:
-        """Unlabeled, judged results for one rubric. Blind: no judge verdict or rationale."""
+        """Unlabeled, judged results. Blind: no judge verdict or rationale.
+
+        With `batch`, serves that calibration batch in its stored order, across rubrics.
+        """
         s = store()
+        if batch is not None:
+            items = s.batch_items(batch)
+            if not items:
+                raise HTTPException(404, f"no batch {batch}")
+            done = {(x["run_id"], x["sample_id"], x["epoch"], x["rubric"]) for x in s.labels()}
+            packs: dict[str, dict] = {}
+            out = []
+            for b in items:
+                key = (b["run_id"], b["sample_id"], b["epoch"], b["rubric"])
+                run_row = s.run(b["run_id"])
+                r = s.result(b["run_id"], b["sample_id"], b["epoch"])
+                if key in done or run_row is None or r is None:
+                    continue
+                pack = packs.setdefault(run_row["pack"], scenarios_for(run_row["pack"]))
+                out.append(queue_item(b["run_id"], pack, r, b["rubric"]))
+                if len(out) >= limit:
+                    break
+            return out
         run_rows = [get_run(s, run)] if run else s.runs()
-        done = {(x["run_id"], x["sample_id"], x["epoch"]) for x in s.labels(rubric=rubric)}
-        guide = rubric_guide(rubric)
+        done3 = {(x["run_id"], x["sample_id"], x["epoch"]) for x in s.labels(rubric=rubric)}
         todo = []
         for run_row in run_rows:
             rid = run_row["id"]
@@ -165,29 +219,9 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
             }
             for r in s.results(rid):
                 key = (r["sample_id"], r["epoch"])
-                if r["error"] or key not in judged or (rid, *key) in done:
+                if r["error"] or key not in judged or (rid, *key) in done3:
                     continue
-                sc = pack.get(r["sample_id"])
-                todo.append(
-                    {
-                        "run_id": rid,
-                        "sample_id": r["sample_id"],
-                        "epoch": r["epoch"],
-                        "rubric": rubric,
-                        "transcript": r["transcript"],
-                        "citations": [
-                            {
-                                "cite": c,
-                                "display": display_citation(c),
-                                "text": cited_text(c, children=True),
-                            }
-                            for c in (sc.citations if sc else [])
-                        ],
-                        "source_note": sc.source_note if sc else "",
-                        "key_facts": [f.any_of for f in sc.must_say] if sc else [],
-                        "rubric_text": guide,
-                    }
-                )
+                todo.append(queue_item(rid, pack, r, rubric))
         todo.sort(key=lambda i: _shuffle_key(i["run_id"], i["sample_id"], i["epoch"]))
         return todo[:limit]
 

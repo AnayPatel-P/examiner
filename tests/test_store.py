@@ -48,6 +48,7 @@ def test_index_log_writes_run_and_results(log: EvalLog, tmp_path: Path):
     assert od["citation"] == "Meridian fee schedule: overdraft"
     assert "BOT: Our overdraft fee is $34." in od["transcript"]
     assert rows["rege-investigation-time"]["fact_pass"] == 0
+    assert all(r["latency_s"] is not None and r["latency_s"] >= 0 for r in rows.values())
 
 
 def test_index_log_upsert_no_duplicates(log: EvalLog, tmp_path: Path):
@@ -79,3 +80,21 @@ def test_grader_failed_stored_as_no_verdict(bot, tmp_path: Path):
     rows = store.results(store.index_log(log, target="t", variant="naive"))
     assert all(r["judge_pass"] is None for r in rows)
     assert all("grader_failed" in r["judge_rationale"] for r in rows)
+
+
+def test_batch_save_and_progress(tmp_path: Path):
+    from tests.api.seed import seeded
+
+    store = seeded(tmp_path / "x.db")
+    items = [
+        {"run_id": "naive1", "sample_id": "fees-001", "epoch": 1, "rubric": "factual"},
+        {"run_id": "guard1", "sample_id": "fees-002", "epoch": 1, "rubric": "disclosure"},
+    ]
+    store.save_batch("b1", items)
+    assert [r["sample_id"] for r in store.batch_items("b1")] == ["fees-001", "fees-002"]
+    store.save_label("naive1", "fees-001", 1, "factual", True)
+    store.save_label("naive1", "fees-001", 1, "disclosure", True)  # not in the batch
+    [b] = store.batches()
+    assert (b["name"], b["n"], b["labeled"]) == ("b1", 2, 1)
+    store.save_batch("b1", items[:1])  # replacing a batch drops the old items
+    assert len(store.batch_items("b1")) == 1

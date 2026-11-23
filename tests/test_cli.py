@@ -90,3 +90,19 @@ def test_label_export_hides_judge_and_kappa_roundtrip(bot, tmp_path: Path, monke
 def test_run_cost_cap_option():
     result = CliRunner().invoke(app, ["run", "--help"])
     assert "--max-run-cost" in result.output
+
+
+def test_label_batch_command(tmp_path: Path):
+    from tests.api.seed import seeded
+
+    db = tmp_path / "x.db"
+    store = seeded(db)
+    store.save_label("naive1", "fees-001", 1, "factual", True)
+    res = CliRunner().invoke(app, ["label-batch", "--db", str(db), "--per-rubric", "3"])
+    assert res.exit_code == 0, res.output
+    items = Store(db).batch_items("calib-v1")
+    keys = {(i["run_id"], i["sample_id"], i["rubric"]) for i in items}
+    assert ("naive1", "fees-001", "factual") not in keys  # already labeled
+    assert all(i["sample_id"] != "rege-001" for i in items)  # errored
+    assert ("guard1", "rege-020", "commitments") not in keys  # no judge verdict
+    assert len(items) == 9

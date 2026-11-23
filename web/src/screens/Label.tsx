@@ -11,8 +11,13 @@ export default function Label() {
   const [params, setParams] = useSearchParams()
   const rubric = (RUBRICS as string[]).includes(params.get('rubric') ?? '') ? (params.get('rubric') as Rubric) : 'factual'
   const run = params.get('run') ?? ''
+  const batch = params.get('batch') ?? ''
   const runs = useLoad(() => api.runs(), [])
-  const queue = useLoad(() => api.labelQueue({ rubric, run: run || undefined, limit: 200 }), [rubric, run])
+  const batches = useLoad(() => api.batches(), [])
+  const queue = useLoad(
+    () => (batch ? api.labelQueue({ batch, limit: 200 }) : api.labelQueue({ rubric, run: run || undefined, limit: 200 })),
+    [rubric, run, batch],
+  )
   const [state, dispatch] = useReducer(
     labelReducer<QueueItem>,
     initialLabelState as LabelState<QueueItem>,
@@ -20,7 +25,7 @@ export default function Label() {
   // Clear the queue the moment the filters change, so nothing from the old rubric can be labeled.
   useEffect(() => {
     dispatch({ type: 'reset' })
-  }, [rubric, run])
+  }, [rubric, run, batch])
 
   useEffect(() => {
     if (queue.data) dispatch({ type: 'loaded', items: queue.data })
@@ -81,15 +86,26 @@ export default function Label() {
       </div>
 
       <div className="controls">
+        {!!batches.data?.length && (
+          <label className="field">
+            Batch
+            <select value={batch} onChange={(e) => set('batch', e.target.value)}>
+              <option value="">No batch (pick rubric and run)</option>
+              {batches.data.map((b) => (
+                <option key={b.name} value={b.name}>{b.name} · {b.labeled} of {b.n} labeled</option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="field">
           Rubric
-          <select value={rubric} onChange={(e) => set('rubric', e.target.value)}>
+          <select value={rubric} disabled={!!batch} onChange={(e) => set('rubric', e.target.value)}>
             {RUBRICS.map((r) => <option key={r} value={r}>{RUBRIC_LABEL[r]}</option>)}
           </select>
         </label>
         <label className="field">
           Run
-          <select value={run} onChange={(e) => set('run', e.target.value)}>
+          <select value={run} disabled={!!batch} onChange={(e) => set('run', e.target.value)}>
             <option value="">All runs (mixed)</option>
             {runs.data?.map((r) => (
               <option key={r.id} value={r.id}>Run {r.id.slice(0, 8)} · {r.pack} pack</option>
@@ -106,7 +122,7 @@ export default function Label() {
       {queue.error && <ErrorState error={queue.error} onRetry={queue.reload} />}
       {ready && !item && (
         <Empty>
-          <p>Nothing left to label for {RUBRIC_LABEL[rubric]}{run ? ' in this run' : ''}.</p>
+          <p>{batch ? `Batch ${batch} is fully labeled.` : `Nothing left to label for ${RUBRIC_LABEL[rubric]}${run ? ' in this run' : ''}.`}</p>
           <p className="small"><Link to="/calibration">See how the judge agrees with your labels</Link></p>
         </Empty>
       )}
@@ -119,6 +135,11 @@ export default function Label() {
               <span className="small muted id">{item.sample_id}</span>
             </div>
             <Transcript text={item.transcript} />
+            {batch && (
+              <p className="small" aria-live="polite">
+                Judging this one on <strong>{RUBRIC_LABEL[item.rubric]}</strong> (the rubric changes between items in a batch)
+              </p>
+            )}
             <div className="label-actions" role="group" aria-label="Your verdict">
               <button className="btn btn-primary" aria-disabled={saving} onClick={() => !saving && dispatch({ type: 'key', pass: true })}>
                 Pass <kbd>Y</kbd>

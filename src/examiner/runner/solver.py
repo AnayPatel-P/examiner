@@ -1,5 +1,7 @@
 """Inspect solver that drives an external HTTP chat target."""
 
+import time
+
 import httpx
 from inspect_ai.model import ChatMessage, ChatMessageAssistant, ChatMessageUser, ModelOutput
 from inspect_ai.solver import Generate, Solver, TaskState, solver
@@ -19,6 +21,7 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
         state.messages = []
         reply = ""
         usage: dict[str, int] | None = {"input_tokens": 0, "output_tokens": 0}
+        latency = 0.0  # seconds spent waiting on the target, summed over turns
         async with httpx.AsyncClient(timeout=timeout) as client:
             for turn in turns:
                 state.messages.append(ChatMessageUser(content=turn))
@@ -28,10 +31,12 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
                     if m.role in ("user", "assistant")
                 ]
                 try:
+                    t0 = time.perf_counter()
                     resp = await client.post(
                         f"{url.rstrip('/')}/chat",
                         json={"variant": variant, "messages": history},
                     )
+                    latency += time.perf_counter() - t0
                     resp.raise_for_status()
                     body = resp.json()
                     reply = body["reply"]
@@ -48,6 +53,7 @@ def http_target(url: str, variant: str = "naive", timeout: float = 60.0) -> Solv
                     usage = None  # missing or malformed usage from the target: cost unknown
                 state.messages.append(ChatMessageAssistant(content=reply))
         state.metadata["target_usage"] = usage
+        state.metadata["target_latency_s"] = round(latency, 3)
         state.output = ModelOutput.from_content(f"meridian/{variant}", reply)
         return state
 

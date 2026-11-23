@@ -142,3 +142,35 @@ def test_calibration_no_comparable_labels_is_null(api: TestClient):
     c = api.get("/api/calibration").json()["commitments"]
     assert c["n"] == 0 and c["n_labels"] == 1 and c["kappa"] is None
     assert c["raw_agreement"] is None
+
+
+def test_batch_queue_mixes_rubrics_in_order_and_stays_blind(api: TestClient, db: Path):
+    s = Store(db)
+    s.save_batch(
+        "calib",
+        [
+            {"run_id": "guard1", "sample_id": "fees-002", "epoch": 1, "rubric": "disclosure"},
+            {"run_id": "naive1", "sample_id": "fees-001", "epoch": 1, "rubric": "factual"},
+            {"run_id": "naive1", "sample_id": "rege-020", "epoch": 1, "rubric": "commitments"},
+        ],
+    )
+    items = api.get("/api/label-queue", params={"batch": "calib"}).json()
+    assert [(i["sample_id"], i["rubric"]) for i in items] == [
+        ("fees-002", "disclosure"),
+        ("fees-001", "factual"),
+        ("rege-020", "commitments"),
+    ]
+    assert all(set(i) == QUEUE_KEYS for i in items)
+    assert "disclosure" in items[0]["rubric_text"].lower()
+    flat = str(items)
+    assert "rationale" not in flat and "judge_pass" not in flat
+    # Labeling one item removes only that item from the batch queue.
+    assert label(api, "naive1", "fees-001", False, rubric="factual").status_code == 201
+    left = api.get("/api/label-queue", params={"batch": "calib"}).json()
+    assert [i["sample_id"] for i in left] == ["fees-002", "rege-020"]
+    [b] = api.get("/api/batches").json()
+    assert b == {"name": "calib", "n": 3, "labeled": 1}
+
+
+def test_unknown_batch_is_404(api: TestClient):
+    assert api.get("/api/label-queue", params={"batch": "nope"}).status_code == 404

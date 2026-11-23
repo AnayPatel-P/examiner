@@ -163,3 +163,118 @@ def diff_runs(
         out[cat].append({"sample_id": key[0], "epoch": key[1], "a": a.get(key), "b": b.get(key)})
     out["counts"] = {c: len(out[c]) for c in DIFF_CATEGORIES}
     return out
+
+
+# Official headings of the Reg E sections the packs cite (12 CFR part 1005).
+SECTION_TITLES = {
+    "1005.6": "Liability of consumer for unauthorized transfers",
+    "1005.8": "Change in terms notice; error resolution notice",
+    "1005.9": "Receipts at electronic terminals; periodic statements",
+    "1005.10": "Preauthorized transfers",
+    "1005.11": "Procedures for resolving errors",
+    "1005.17": "Requirements for overdraft services",
+    "1005.33": "Procedures for resolving errors (remittance transfers)",
+    "1005.34": "Procedures for cancellation and refund of remittance transfers",
+}
+FEE_SECTION = "fee schedule"
+
+
+def section_of(cite: str) -> str:
+    if cite.startswith("fee:"):
+        return FEE_SECTION
+    para = cite.removeprefix("12 CFR ").strip()
+    return para.split("(")[0]
+
+
+def failure_modes(row: Row, rubrics: Mapping[str, int | None]) -> list[str]:
+    """How a scored result failed: fact_missing, fact_forbidden and/or each failed rubric."""
+    import json
+
+    modes = []
+    detail = json.loads(row["fact_detail"]) if row["fact_detail"] else {}
+    if row["fact_pass"] == 0:
+        if detail.get("missing"):
+            modes.append("fact_missing")
+        if detail.get("forbidden"):
+            modes.append("fact_forbidden")
+    modes += [r for r in RUBRIC_NAMES if rubrics.get(r) == 0]
+    return modes
+
+
+def failure_taxonomy(
+    results: Iterable[Row], scores: Iterable[Row], citations: Mapping[str, Sequence[str]]
+) -> dict:
+    """Which cited clauses fail, how often, and how. A scenario counts under each clause it
+    cites. Errored and unscored results are left out."""
+    by_key = rubric_map(scores)
+    clauses: dict[str, dict] = {}
+    sections: dict[str, dict] = {}
+    modes_all: dict[str, int] = {}
+    scored = failed = 0
+    for r in results:
+        rubrics = by_key.get((r["sample_id"], r["epoch"]), {})
+        overall = overall_pass(r, rubrics)
+        if overall is None:
+            continue
+        scored += 1
+        modes = failure_modes(r, rubrics) if overall == 0 else []
+        failed += overall == 0
+        for m in modes:
+            modes_all[m] = modes_all.get(m, 0) + 1
+        cites = list(citations.get(r["sample_id"], []))
+        for cite in cites:
+            row = clauses.setdefault(
+                cite,
+                {
+                    "citation": cite,
+                    "section": section_of(cite),
+                    "section_title": SECTION_TITLES.get(section_of(cite), ""),
+                    "n": 0,
+                    "failed": 0,
+                    "modes": {},
+                    "failing": [],
+                },
+            )
+            row["n"] += 1
+            if overall == 0:
+                row["failed"] += 1
+                row["failing"].append(r["sample_id"])
+                for m in modes:
+                    row["modes"][m] = row["modes"].get(m, 0) + 1
+        for sec in {section_of(c) for c in cites}:
+            s = sections.setdefault(
+                sec,
+                {"section": sec, "section_title": SECTION_TITLES.get(sec, ""), "n": 0, "failed": 0},
+            )
+            s["n"] += 1
+            s["failed"] += overall == 0
+    order = lambda d: (-d["failed"], d.get("citation", d["section"]))  # noqa: E731
+    return {
+        "scored_scenarios": scored,
+        "failed_scenarios": failed,
+        "modes": modes_all,
+        "sections": sorted(sections.values(), key=order),
+        "clauses": sorted(clauses.values(), key=order),
+    }
+
+
+def run_ops(run: Row, results: Sequence[Row]) -> dict:
+    """Cost and latency for one run. Latency is time waiting on the bot, per scenario."""
+    import math
+    import statistics
+
+    lat = sorted(r["latency_s"] for r in results if r["latency_s"] is not None)
+    costs = [run["cost_usd"], run["target_cost_usd"]]
+    total = None if all(c is None for c in costs) else round(sum(c or 0 for c in costs), 6)
+    n = len(results)
+    return {
+        "n": n,
+        "judge_cost_usd": run["cost_usd"],
+        "target_cost_usd": run["target_cost_usd"],
+        "total_cost_usd": total,
+        "cost_per_scenario_usd": round(total / n, 6) if total is not None and n else None,
+        "wall_seconds": run["wall_seconds"],
+        "latency_p50_s": round(statistics.median(lat), 3) if lat else None,
+        "latency_p95_s": round(lat[math.ceil(0.95 * len(lat)) - 1], 3) if lat else None,
+        "latency_mean_s": round(statistics.fmean(lat), 3) if lat else None,
+    }

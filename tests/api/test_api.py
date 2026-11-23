@@ -86,3 +86,18 @@ def test_run_with_missing_pack_does_not_500(tmp_path: Path):
     d = api.get("/api/runs/gone1/results/fees-001")
     assert d.status_code == 200 and d.json()["scenario"] is None
     assert api.get("/api/label-queue").status_code == 200
+
+
+def test_run_detail_has_ops_and_taxonomy(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from examiner.api.app import create_api
+    from tests.api.seed import seeded
+
+    seeded(tmp_path / "x.db")
+    api = TestClient(create_api(tmp_path / "x.db"))
+    ops = api.get("/api/runs/naive1").json()["ops"]
+    assert ops["total_cost_usd"] == 1.52 and ops["n"] == 4
+    tax = api.get("/api/runs/naive1/taxonomy").json()
+    assert set(tax) == {"scored_scenarios", "failed_scenarios", "modes", "sections", "clauses"}
+    assert api.get("/api/runs/nope/taxonomy").status_code == 404
