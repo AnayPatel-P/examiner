@@ -1,7 +1,8 @@
 // Captures the dashboard walkthrough as timed frames (no model calls; label POSTs are blocked).
 import { createRequire } from 'node:module'
 import { writeFileSync } from 'node:fs'
-const require = createRequire('/Users/anaypatel/.cache/anay-ui-verify/package.json')
+// Playwright comes from the ui-verify cache; set PLAYWRIGHT_HOME to use another install.
+const require = createRequire(`${process.env.PLAYWRIGHT_HOME ?? `${process.env.HOME}/.cache/anay-ui-verify`}/package.json`)
 const { chromium } = require('playwright')
 const BASE = 'http://localhost:5173'
 const OUT = process.argv[2]
