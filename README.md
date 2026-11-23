@@ -16,7 +16,7 @@ Overall = the deterministic fact check AND all three judge rubrics pass. Runs fr
 
 **Judge agreement with a human is not measured yet.** The 102-item blind calibration batch is built and waiting for labels, so the judge's numbers above are unvalidated. Reading the guarded failures by hand already turned up one judge error (see [What fails](#what-fails)).
 
-[Deployment memo](docs/memo.md): launch criteria, thresholds, and why the guarded bot isn't cleared yet.
+**[Live scorecard](https://anaypatel-p.github.io/examiner/)** (read-only snapshot of these runs) · **[Deployment memo](docs/memo.md)**: launch criteria, thresholds, and why the guarded bot isn't cleared yet.
 
 Not legal advice. Meridian Bank is fictional.
 
