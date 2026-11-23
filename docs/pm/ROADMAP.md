@@ -65,11 +65,12 @@ Rough pacing: 2-3 weeks of evenings, ~1-2 sessions per phase.
 ## Phase 5 — Calibrate, export, ship
 **Goal:** real numbers and a public demo.
 **Demo:** the public scorecard URL + README case study + a 60-second video.
-- [ ] 5.1 Label ≥ 100 transcripts; revise at least one rubric; record kappa before/after
-- [ ] 5.2 Static scorecard export (JSON snapshot + Vite build) → GitHub Pages (if time; else v1.1)
-- [ ] 5.3 README: problem, architecture diagram, how to run, results, limitations, "not legal advice"
+- [ ] 5.1 Label ≥ 100 transcripts; revise at least one rubric; record kappa before/after (batch of 102 built; labels pending)
+- [x] 5.2 Static scorecard export (JSON snapshot + Vite build) → GitHub Pages (if time; else v1.1)
+- [x] 5.3 README: problem, architecture diagram, how to run, results, limitations, "not legal advice"
 - [ ] 5.4 Final acceptance check against the PRD; code review
-- [ ] 5.5 Update vault `wiki/projects/examiner.md` + resume bullet with the real numbers
+- [x] 5.6 Failure taxonomy, cost and latency per run, CI regression gate, deployment memo (docs/memo.md)
+- [x] 5.5 Update vault `wiki/projects/examiner.md` + resume bullet with the real numbers
 **Done when:**
 - [ ] Calibration report with ≥ 100 labels is in the repo
 - [ ] README results section has real kappa, pass rates and cost

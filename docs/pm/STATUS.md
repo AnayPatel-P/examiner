@@ -1,13 +1,14 @@
 # Status
 
-**Updated:** 2026-11-18
-**Current phase:** C (Build), roadmap Phase 4 done
-**Current milestone:** Phase 4 accepted pending Anay's review
-**Last completed:** Phase 4, dashboard (web/): runs, scorecard, finding drill-down, blind labeling, calibration, diff with the tick-strip signature (DIRECTION.md, D19-D20). ui-verify: 0 blocking (full run 2026-11-19T03-46, then basics/a11y/motion re-run clean). Review: 1 critical + 6 important fixed.
-**Next up:** Anay labels ~100 transcripts in the dashboard (the calibration set), then Phase 5: calibrate, export, ship
-**Blockers / open questions:** branches `phase-1` to `phase-4` are local only, nothing merged to master or pushed
+**Updated:** 2026-11-22
+**Current phase:** C (Build), roadmap Phase 5 (calibrate, export, ship) mostly done on branch `phase-5`
+**Current milestone:** Phase 5, waiting on human labels for kappa
+**Last completed:** fresh v1 runs on the new machine (naive 21.3%, guarded 92.1%, misinformed 0.8%; D21); 102-item calibration batch; failure taxonomy; cost and latency per run; regression gate + baseline; offline rescore; deployment memo (docs/memo.md); README rewrite; static scorecard snapshot and Pages workflow.
+**Next up:** Anay labels calib-v1 (`/label?batch=calib-v1`), then `examiner calibration`, revise any rubric under 0.6, `examiner rescore`, re-export. Then merge `phase-5`, decide on going public.
+**Blockers / open questions:** kappa not measured (Anay chose to ship without labels for now). Repo is private, so Pages can't publish until it's public or on a paid plan. The eval-gate workflow needs an `ANTHROPIC_API_KEY` repo secret. `main` and phase-1..4 are pushed; `phase-5` is local only.
 
 ## History
+- 2026-11-22: Phase 5 built on `phase-5`: batches, taxonomy, gate, rescore, export, memo, README. Fresh runs (D21). Labeling deferred by Anay.
 - 2026-11-18: Phase 4 built (plan: phase-4-plan.md), direction set with ui-direct, verified with ui-verify, reviewed, fixed.
 - 2026-11-18: Phase 3 built (plan: phase-3-plan.md), reviewed, fixed; live guarded runs (93.7% pre-fix, 90.6% final).
 - 2026-11-18: Phase 2 built (plan: phase-2-plan.md), reviewed, fixed; live runs naive + misinformed.
