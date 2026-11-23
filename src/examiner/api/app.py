@@ -201,7 +201,9 @@ def create_api(db: Path = Path("examiner.db")) -> FastAPI:
                 r = s.result(b["run_id"], b["sample_id"], b["epoch"])
                 if key in done or run_row is None or r is None:
                     continue
-                pack = packs.setdefault(run_row["pack"], scenarios_for(run_row["pack"]))
+                if run_row["pack"] not in packs:  # setdefault would re-parse the pack per item
+                    packs[run_row["pack"]] = scenarios_for(run_row["pack"])
+                pack = packs[run_row["pack"]]
                 out.append(queue_item(b["run_id"], pack, r, b["rubric"]))
                 if len(out) >= limit:
                     break
